@@ -1,0 +1,40 @@
+{
+  "dataset": {
+    "id": 42468,
+    "cache": true,
+    "max_samples": null,
+    "sample_seed": 42
+  },
+  "split": {
+    "seed": 42,
+    "train": 0.64,
+    "validation": 0.16,
+    "test": 0.2
+  },
+  "training": {
+    "epochs": 20,
+    "batch_size": 1024,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0,
+    "device": "cpu"
+  },
+  "evaluation": {
+    "batch_size": 4096,
+    "latency": {
+      "warmup": 50,
+      "iterations": 500
+    }
+  },
+  "run_name": "qkeras_mlp_topo__seed42",
+  "model": {
+    "name": "qkeras_mlp",
+    "hidden_dims": [128, 32],
+    "qkeras": {
+      "bits": 6,
+      "integer_bits": 0,
+      "alpha": 1
+    }
+  },
+  "base_run_name": "qkeras_mlp_topo",
+  "seed": 42
+}

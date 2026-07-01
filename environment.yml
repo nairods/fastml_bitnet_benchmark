@@ -1,0 +1,23 @@
+name: fastml-bitnet-benchmark
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - onnx
+  - onnxruntime
+  - openml
+  - pytorch
+  - xgboost
+  - h5py
+  - pyyaml
+  - scipy
+  - joblib
+  - pip:
+      - hls4ml
+      - conifer

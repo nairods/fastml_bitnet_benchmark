@@ -1,0 +1,11 @@
+matplotlib
+numpy
+onnx
+onnxruntime
+openml
+pandas
+scikit-learn
+torch
+xgboost
+hls4ml
+conifer

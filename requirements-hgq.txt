@@ -1,0 +1,3 @@
+tensorflow==2.15.1
+keras==2.15.0
+git+https://github.com/calad0i/HGQ.git@v0.2.6

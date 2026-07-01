@@ -1,0 +1,32 @@
+{
+  "common_interface": {
+    "input_samples": "identical standardized float32 arrays before fixed-point casting",
+    "rounding": "AP_RND",
+    "saturation": "AP_SAT",
+    "integer_bits": 5,
+    "reason": "covers the observed standardized training range up to abs(x)=8.96"
+  },
+  "native_comparison": {
+    "purpose": "compare each method as designed",
+    "float_mlp": "ap_fixed<16,5>",
+    "bitnet_input": "ap_fixed<8,5>",
+    "bitnet_activation": "8-bit native dynamic quantizer; reproduce explicitly in conversion",
+    "qkeras": "model-configured weight and activation precision",
+    "hgq": "learned precision from trained HGQ layers"
+  },
+  "controlled_comparison": {
+    "purpose": "same input and HLS arithmetic width; model-specific weight representation remains",
+    "formats": [
+      "ap_fixed<16,5,AP_RND,AP_SAT>",
+      "ap_fixed<12,5,AP_RND,AP_SAT>",
+      "ap_fixed<10,5,AP_RND,AP_SAT>",
+      "ap_fixed<8,5,AP_RND,AP_SAT>",
+      "ap_fixed<6,5,AP_RND,AP_SAT>"
+    ],
+    "warning": "6 total bits with 5 integer bits has one fractional bit and is intentionally aggressive"
+  },
+  "accumulator_policy": {
+    "initial": "ap_fixed<24,10,AP_RND,AP_SAT>",
+    "requirement": "validate overflow and accuracy with x_profile before synthesis"
+  }
+}

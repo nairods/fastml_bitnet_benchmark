@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+logs/
+hls_projects/
+onnx/
+models/
+data/openml/
+data/cache/

@@ -1,0 +1,166 @@
+{
+  "seeds": [42, 43, 44],
+  "common": {
+    "dataset": {
+      "id": 42468,
+      "cache": true,
+      "max_samples": null,
+      "sample_seed": 42
+    },
+    "split": {
+      "seed": 42,
+      "train": 0.64,
+      "validation": 0.16,
+      "test": 0.20
+    },
+    "training": {
+      "epochs": 20,
+      "batch_size": 1024,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0,
+      "device": "auto"
+    },
+    "evaluation": {
+      "batch_size": 4096,
+      "latency": {
+        "warmup": 50,
+        "iterations": 500
+      }
+    },
+    "onnx": {
+      "opset": 17
+    }
+  },
+  "models": [
+    {
+      "run_name": "mlp_baseline",
+      "model": {"name": "mlp_baseline", "hidden_dims": [64, 32, 32]}
+    },
+    {
+      "run_name": "mlp_topo",
+      "model": {"name": "mlp_topo"}
+    },
+    {
+      "run_name": "bitnet_topo_f7_fixed",
+      "model": {
+        "name": "bitnet_topo",
+        "bitnet": {
+          "activation_bits": 8,
+          "frac_bits": 7,
+          "beta_quant": "fixed"
+        }
+      }
+    },
+    {
+      "run_name": "bit158_topo_f7_fixed",
+      "model": {
+        "name": "bit158_topo",
+        "bitnet": {
+          "activation_bits": 8,
+          "frac_bits": 7,
+          "beta_quant": "fixed"
+        }
+      }
+    },
+    {
+      "run_name": "bit158_mlp_f7_fixed",
+      "model": {
+        "name": "bit158_mlp",
+        "hidden_dims": [64, 32, 32],
+        "bitnet": {
+          "activation_bits": 8,
+          "frac_bits": 7,
+          "beta_quant": "fixed"
+        }
+      }
+    },
+    {
+      "run_name": "binary_448_224_224",
+      "model": {
+        "name": "binary_large",
+        "bitnet": {
+          "activation_bits": 8,
+          "frac_bits": null,
+          "beta_quant": null
+        }
+      }
+    },
+    {
+      "run_name": "ternary_128_64_64_64",
+      "model": {
+        "name": "ternary_large",
+        "bitnet": {
+          "activation_bits": 8,
+          "frac_bits": null,
+          "beta_quant": null
+        }
+      }
+    },
+    {
+      "run_name": "deepsets_hlf",
+      "model": {"name": "deepsets_hlf"}
+    },
+    {
+      "run_name": "mlp_mixer_hlf",
+      "model": {
+        "name": "mlp_mixer_hlf",
+        "mixer": {
+          "embedding_dim": 32,
+          "blocks": 2,
+          "token_hidden": 32,
+          "channel_hidden": 64
+        }
+      }
+    },
+    {
+      "run_name": "xgboost_bdt",
+      "model": {
+        "name": "xgboost_bdt",
+        "xgboost": {
+          "n_estimators": 400,
+          "max_depth": 6,
+          "learning_rate": 0.05,
+          "subsample": 0.8,
+          "colsample_bytree": 0.8,
+          "min_child_weight": 1.0,
+          "reg_lambda": 1.0,
+          "tree_method": "hist",
+          "objective": "multi:softprob",
+          "eval_metric": [
+            "mlogloss",
+            "merror"
+          ],
+          "early_stopping_rounds": 25
+        }
+      },
+      "training": {
+        "device": "cpu"
+      }
+    },
+    {
+      "run_name": "qkeras_mlp",
+      "model": {
+        "name": "qkeras_mlp",
+        "hidden_dims": [64, 32, 32],
+        "qkeras": {"bits": 6, "integer_bits": 0, "alpha": 1}
+      }
+    },
+    {
+      "run_name": "hgq_mlp",
+      "optional": true,
+      "training": {
+        "epochs": 200,
+        "batch_size": 16384,
+        "learning_rate": 0.02,
+        "cosine_decay_steps": 200,
+        "weight_decay": 0.0,
+        "device": "cpu"
+      },
+      "model": {
+        "name": "hgq_mlp",
+        "hidden_dims": [64, 32, 32],
+        "hgq": {"beta": 0.000003}
+      }
+    }
+  ]
+}

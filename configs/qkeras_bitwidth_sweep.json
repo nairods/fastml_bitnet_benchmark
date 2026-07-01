@@ -1,0 +1,73 @@
+{
+  "seeds": [42, 43, 44],
+  "common": {
+    "dataset": {
+      "id": 42468,
+      "cache": true,
+      "max_samples": null,
+      "sample_seed": 42
+    },
+    "split": {
+      "seed": 42,
+      "train": 0.64,
+      "validation": 0.16,
+      "test": 0.20
+    },
+    "training": {
+      "epochs": 20,
+      "batch_size": 1024,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0,
+      "device": "cpu"
+    },
+    "evaluation": {
+      "batch_size": 4096,
+      "latency": {
+        "warmup": 50,
+        "iterations": 500
+      }
+    }
+  },
+  "models": [
+    {
+      "run_name": "qkeras_mlp_b5",
+      "model": {
+        "name": "qkeras_mlp",
+        "hidden_dims": [64, 32, 32],
+        "qkeras": {"bits": 5, "integer_bits": 0, "alpha": 1}
+      }
+    },
+    {
+      "run_name": "qkeras_mlp_b7",
+      "model": {
+        "name": "qkeras_mlp",
+        "hidden_dims": [64, 32, 32],
+        "qkeras": {"bits": 7, "integer_bits": 0, "alpha": 1}
+      }
+    },
+    {
+      "run_name": "qkeras_mlp_b8",
+      "model": {
+        "name": "qkeras_mlp",
+        "hidden_dims": [64, 32, 32],
+        "qkeras": {"bits": 8, "integer_bits": 0, "alpha": 1}
+      }
+    },
+    {
+      "run_name": "qkeras_mlp_b10",
+      "model": {
+        "name": "qkeras_mlp",
+        "hidden_dims": [64, 32, 32],
+        "qkeras": {"bits": 10, "integer_bits": 0, "alpha": 1}
+      }
+    },
+    {
+      "run_name": "qkeras_mlp_b12",
+      "model": {
+        "name": "qkeras_mlp",
+        "hidden_dims": [64, 32, 32],
+        "qkeras": {"bits": 12, "integer_bits": 0, "alpha": 1}
+      }
+    }
+  ]
+}

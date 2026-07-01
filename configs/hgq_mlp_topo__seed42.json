@@ -1,0 +1,39 @@
+{
+  "dataset": {
+    "id": 42468,
+    "cache": true,
+    "max_samples": null,
+    "sample_seed": 42
+  },
+  "split": {
+    "seed": 42,
+    "train": 0.64,
+    "validation": 0.16,
+    "test": 0.2
+  },
+  "training": {
+    "epochs": 200,
+    "batch_size": 16384,
+    "learning_rate": 0.02,
+    "cosine_decay_steps": 200,
+    "weight_decay": 0.0,
+    "device": "cpu"
+  },
+  "evaluation": {
+    "batch_size": 16384,
+    "latency": {
+      "warmup": 50,
+      "iterations": 500
+    }
+  },
+  "run_name": "hgq_mlp_topo__seed42",
+  "model": {
+    "name": "hgq_mlp",
+    "hidden_dims": [128, 32],
+    "hgq": {
+      "beta": 0.000003
+    }
+  },
+  "base_run_name": "hgq_mlp_topo",
+  "seed": 42
+}

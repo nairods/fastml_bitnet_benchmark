@@ -1,0 +1,9 @@
+{
+  "backend": "Vivado",
+  "part": "xcvu13p-flga2577-2-e",
+  "clock_period": 5.0,
+  "io_type": "io_parallel",
+  "reuse_factor": 1,
+  "controlled_precisions": [16, 12, 10, 8, 6],
+  "native_bitnet_precision": 8
+}
