@@ -44,7 +44,6 @@ These commands regenerated:
 - `plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`
 - `plots/benchmark_pareto_auc_vs_lut_multiclass.png`
 - `plots/benchmark_pareto_auc_vs_latency_multiclass.png`
-- `plots/benchmark_lowbit_comparison.png`
 
 Current lightweight artifact path:
 

@@ -960,31 +960,6 @@ def plot_latency_lut_bubble(
     plt.close(fig)
 
 
-def plot_lowbit(rows: list[dict]) -> None:
-    low = [row for row in rows if row.get("task") == "binary_qg_vs_wzt" and any(name in row["model"] for name in ("QKeras binary", "QKeras ternary", "BitNet", "Bit158"))]
-    fig, ax1 = plt.subplots(figsize=(8.5, 5.2))
-    labels = [f"{row['model']}\n{row['architecture']}" for row in low]
-    x = np.arange(len(low))
-    auc = [row["auc_mean"] or 0 for row in low]
-    lut = [row["lut_mean"] or 0 for row in low]
-    ax1.bar(x - 0.18, auc, width=0.36, label="AUC", color="#2f6f73")
-    ax1.set_ylim(0.88, max(0.94, max(auc) + 0.01))
-    ax1.set_ylabel("AUC")
-    ax2 = ax1.twinx()
-    ax2.bar(x + 0.18, lut, width=0.36, label="LUT", color="#9a5c2e", alpha=0.75)
-    ax2.set_ylabel("LUT")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(labels, rotation=35, ha="right", fontsize=8)
-    ax1.set_title("Low-bit primary binary comparison")
-    ax1.grid(True, axis="y", alpha=0.2)
-    lines1, labels1 = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, frameon=False, loc="lower right")
-    fig.tight_layout()
-    fig.savefig(PLOTS / "benchmark_lowbit_comparison.png", dpi=200)
-    plt.close(fig)
-
-
 def precision_sweep_rows() -> list[dict]:
     rows = []
     for bits in (5, 7, 8, 10, 12):
@@ -1374,8 +1349,6 @@ def main() -> int:
         annotate=True,
         xlim=(0, 30),
     )
-    plot_lowbit(all_raw)
-
     complete = [row for row in status if row["complete"]]
     missing = [row for row in status if not row["complete"]]
     failed = []
@@ -1459,7 +1432,6 @@ def main() -> int:
             "## Recommended Benchmark Material",
             "- Main table: results/benchmark_main_binary_table.csv",
             "- Secondary table: results/benchmark_secondary_top_table.csv",
-            "- Low-bit comparison: results/benchmark_lowbit_comparison.csv and plots/benchmark_lowbit_comparison.png",
             "- Pareto figures: plots/benchmark_pareto_auc_vs_lut.png and plots/benchmark_pareto_auc_vs_latency.png",
             "- Task-filtered Pareto figures: plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png and plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
             "- Use multiclass only as a compact supporting table: results/benchmark_multiclass_summary.csv",

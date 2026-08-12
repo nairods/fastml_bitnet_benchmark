@@ -247,36 +247,6 @@ def plot_pareto(
     plt.close(fig)
 
 
-def plot_lowbit(rows: list[dict[str, str]]) -> None:
-    clean = [
-        row
-        for row in rows
-        if row.get("task") == "binary_qg_vs_wzt"
-        and row.get("model") in LOWBIT_MODELS
-        and f(row, "auc_mean") is not None
-        and f(row, "lut_mean") is not None
-    ]
-    labels = [f"{short_label(row['model'])}\n{row['architecture']}" for row in clean]
-    x = range(len(clean))
-    fig, ax1 = plt.subplots(figsize=(8.5, 5.2))
-    ax1.bar([i - 0.18 for i in x], [float(row["auc_mean"]) for row in clean], width=0.36, label="AUC", color="#2f6f73")
-    ax1.set_ylabel("AUC")
-    ax1.set_ylim(0.88, 0.93)
-    ax2 = ax1.twinx()
-    ax2.bar([i + 0.18 for i in x], [float(row["lut_mean"]) for row in clean], width=0.36, label="LUT", color="#9a5c2e", alpha=0.75)
-    ax2.set_ylabel("LUT")
-    ax1.set_xticks(list(x))
-    ax1.set_xticklabels(labels, rotation=35, ha="right", fontsize=8)
-    ax1.set_title("Low-bit primary binary comparison")
-    ax1.grid(True, axis="y", alpha=0.2)
-    handles1, labels1 = ax1.get_legend_handles_labels()
-    handles2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(handles1 + handles2, labels1 + labels2, frameon=False, loc="lower right")
-    fig.tight_layout()
-    fig.savefig(PLOTS / "benchmark_lowbit_comparison.png", dpi=300)
-    plt.close(fig)
-
-
 def main() -> int:
     RESULTS.mkdir(exist_ok=True)
     PLOTS.mkdir(exist_ok=True)
@@ -381,8 +351,6 @@ def main() -> int:
             y_key="macro_auc_mean",
             ylabel="Macro ROC AUC",
         )
-    plot_lowbit(main_rows)
-
     check = {
         "status": "ok",
         "primary_rows": len(main_rows),
@@ -409,7 +377,6 @@ def main() -> int:
         "- `plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`",
         "- `plots/benchmark_pareto_auc_vs_lut_multiclass.png`",
         "- `plots/benchmark_pareto_auc_vs_latency_multiclass.png`",
-        "- `plots/benchmark_lowbit_comparison.png`",
         "",
         "## Coverage",
         f"- Primary q/g vs W/Z/top rows: {len(main_rows)}",

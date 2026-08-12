@@ -14,7 +14,6 @@ Hardware numbers are VU13P, 5 ns HLS C-synthesis estimates, not place-and-route.
 - `plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`
 - `plots/benchmark_pareto_auc_vs_lut_multiclass.png`
 - `plots/benchmark_pareto_auc_vs_latency_multiclass.png`
-- `plots/benchmark_lowbit_comparison.png`
 
 ## Coverage
 - Primary q/g vs W/Z/top rows: 16
