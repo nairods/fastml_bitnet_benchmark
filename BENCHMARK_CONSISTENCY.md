@@ -1,6 +1,6 @@
-# Extended Abstract Consistency
+# Benchmark Consistency
 
-This file maps the main extended-abstract claims to repository evidence.
+This file maps the main benchmark claims to repository evidence.
 
 ## Dataset Claim
 
@@ -9,9 +9,7 @@ Claim: The benchmark uses OpenML 42468, `hls4ml_lhc_jets_hlf`, with 16 high-leve
 Evidence:
 
 - Dataset loading: `benchmark.py`
-- Dataset ID in configs: `configs/fair_benchmark.json`
-- Split archives: `data/splits/`
-- Dataset provenance: `results/stage1_provenance.json`
+- Dataset metadata and split provenance: `data/splits/`
 
 Status: supported.
 
@@ -22,8 +20,8 @@ Claim: The main task is `q/g vs W/Z/top`, with q/g as background and W/Z/top as 
 Evidence:
 
 - Class mapping: `benchmark.py`, `_classification_spec`, mode `binary_qg_vs_wzt`
-- Primary table: `results/abstract_main_binary_table.csv`
-- Primary plots: `plots/AUC_vs_LUT.png`, `plots/AUC_vs_latency.png`
+- Primary table: `results/benchmark_main_binary_table.csv`
+- Primary plots: `plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`, `plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`
 
 Status: supported.
 
@@ -34,9 +32,21 @@ Claim: The secondary task is `q/g vs top`, with W/Z removed.
 Evidence:
 
 - Class mapping: `benchmark.py`, mode `binary_top_vs_qg`, `drop_labels={"w", "z"}`
-- Secondary table: `results/abstract_secondary_top_table.csv`
+- Secondary table: `results/benchmark_secondary_top_table.csv`
 
 Status: supported.
+
+## Multiclass Task Claim
+
+Claim: The supporting multiclass task is five-way `q/g/W/Z/top` classification.
+
+Evidence:
+
+- Class mapping: `benchmark.py`, mode `multiclass`
+- Multiclass summary: `results/benchmark_multiclass_summary.csv`
+- Multiclass plots: `plots/benchmark_pareto_auc_vs_lut_multiclass.png`, `plots/benchmark_pareto_auc_vs_latency_multiclass.png`
+
+Status: supported as a partial table where synthesis or seed coverage is incomplete.
 
 ## Split Claim
 
@@ -57,8 +67,8 @@ Claim: Reported means and standard deviations use seeds 42, 43, 44.
 Evidence:
 
 - Workflow script: `scripts/run_binary_benchmark_workflow.py`
-- Abstract tables: `results/abstract_main_binary_table.csv`, `results/abstract_secondary_top_table.csv`
-- Seed summary: `results/abstract_seed_statistics.csv`
+- Benchmark tables: `results/benchmark_main_binary_table.csv`, `results/benchmark_secondary_top_table.csv`
+- Seed summary: `results/benchmark_seed_statistics.csv`
 
 Status: supported. Main rows report `seeds_metrics=3` and `seeds_synth=3`.
 
@@ -70,7 +80,7 @@ Evidence:
 
 - Model construction/workflow: `scripts/run_binary_benchmark_workflow.py`
 - Model registry/configs: `configs/`
-- Result tables: `results/abstract_main_binary_table.csv`
+- Result tables: `results/benchmark_main_binary_table.csv`
 
 Status: supported in summary artifacts. Trained checkpoints are not committed.
 
@@ -82,7 +92,7 @@ Evidence:
 
 - Hardware configs: `configs/hardware_benchmark.json`, `configs/hls4ml_hardware.json`
 - Synthesis scripts: `scripts/synthesize_hls4ml_project.py`, `scripts/synthesize_xgboost_conifer.py`, BitNet synthesis scripts
-- Report text: `results/binary_final_report.md`
+- Artifact coverage: `results/benchmark_status_matrix.csv`
 - README hardware section
 
 Status: supported in summaries. Raw HLS reports are not committed.
@@ -91,7 +101,7 @@ Status: supported in summaries. Raw HLS reports are not committed.
 
 Claim: BitNet-style scaling improves predictive performance over naive binary and ternary QKeras.
 
-Evidence from `results/abstract_main_binary_table.csv`, primary `64-32-32`:
+Evidence from `results/benchmark_main_binary_table.csv`, primary `64-32-32`:
 
 - QKeras binary AUC: 0.88860
 - QKeras ternary AUC: 0.90246
@@ -118,7 +128,7 @@ Claim: HGQ gives the strongest neural LUT efficiency among core neural models.
 
 Evidence:
 
-- `results/abstract_main_binary_table.csv`
+- `results/benchmark_main_binary_table.csv`
 - HGQ `64-32-32`: AUC 0.92761, LUT 8.0k, DSP 0
 
 Status: supported.
@@ -129,7 +139,7 @@ Claim: The tested unrolled BDT gives the lowest HLS C-synthesis latency.
 
 Evidence:
 
-- `results/abstract_main_binary_table.csv`
+- `results/benchmark_main_binary_table.csv`
 - BDT unrolled latency: 4 cycles
 - Next-best neural latency in main rows: HGQ at 6.33 cycles
 
@@ -141,9 +151,9 @@ Claim: Pareto plots show AUC vs LUT and AUC vs latency for the primary task.
 
 Evidence:
 
-- `plots/AUC_vs_LUT.png`
-- `plots/AUC_vs_latency.png`
-- Source tables: `results/abstract_main_binary_table.csv`
+- `plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`
+- `plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`
+- Source tables: `results/benchmark_main_binary_table.csv`
 - Regeneration script: `scripts/reproduce_public_artifacts.py`
 
 Status: supported. The plots include both `64-32-32` and `128-32` architectures plus the unrolled BDT.
@@ -155,8 +165,7 @@ Claim: C-synthesis estimates should not be interpreted as place-and-route result
 Evidence:
 
 - README hardware section
-- `results/binary_final_report.md`
-- `results/abstract_readiness_report.md`
+- `results/benchmark_readiness_report.md`
 
 Status: supported.
 

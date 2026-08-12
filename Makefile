@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: reproduce paper main secondary figures summary
+.PHONY: reproduce paper main secondary figures
 
 reproduce: paper
 
@@ -14,7 +14,4 @@ secondary:
 	$(PYTHON) scripts/run_binary_benchmark_workflow.py --class-mode binary_top_vs_qg --namespace binary_topqg --log-subdir binary_topqg_benchmark --seeds 42 43 44
 
 figures:
-	$(PYTHON) scripts/prepare_abstract_artifacts.py
-
-summary:
-	$(PYTHON) scripts/finalize_overnight_benchmark.py
+	$(PYTHON) scripts/generate_benchmark_artifacts.py

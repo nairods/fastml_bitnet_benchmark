@@ -33,11 +33,16 @@ The dataset is downloaded automatically through `sklearn.datasets.fetch_openml` 
 * signal: top
 * W and Z jets are excluded
 
-The task definitions and class mappings are implemented in [`fastml_bitnet_benchmark/benchmark.py`](fastml_bitnet_benchmark/benchmark.py).
+**Multiclass task — q/g/W/Z/top**
+
+* five-way classification over the OpenML jet labels
+* included as a supporting table because synthesis and seed coverage are partial
+
+The task definitions and class mappings are implemented in [`benchmark.py`](benchmark.py).
 
 ### Data Splits and Preprocessing
 
-All models use the same stratified split:
+Each task uses fixed stratified train/validation/test indices:
 
 * 64% training
 * 16% validation
@@ -46,7 +51,7 @@ All models use the same stratified split:
 
 Canonical split indices are stored in `splits/`, with task-specific split information under `data/splits/`.
 
-Input standardisation uses the committed scaler in `artifacts/scaler.pkl`, fitted on the training data only.
+Each task fits its own `StandardScaler` on that task's training indices only. No committed `artifacts/scaler.pkl` is used.
 
 ### Models
 
@@ -137,7 +142,7 @@ python scripts/run_binary_benchmark_workflow.py \
     --log-subdir binary_topqg_benchmark \
     --seeds 42 43 44
 
-python scripts/prepare_abstract_artifacts.py
+python scripts/generate_benchmark_artifacts.py
 ```
 
 These commands are not expected to run in a minimal clone without the required datasets and FPGA synthesis environment.
@@ -165,13 +170,24 @@ The repository contains the code, summary results and reproducibility artifacts 
 
 Key result files include:
 
-* [`results/abstract_main_binary_table.csv`](results/abstract_main_binary_table.csv) — primary benchmark
-* [`results/abstract_secondary_top_table.csv`](results/abstract_secondary_top_table.csv) — robustness task
-* [`results/abstract_seed_statistics.csv`](results/abstract_seed_statistics.csv) — seed-level statistics
-* [`results/abstract_pareto_candidates.csv`](results/abstract_pareto_candidates.csv) — Pareto comparison
+* [`results/benchmark_main_binary_table.csv`](results/benchmark_main_binary_table.csv) — primary benchmark
+* [`results/benchmark_secondary_top_table.csv`](results/benchmark_secondary_top_table.csv) — robustness task
+* [`results/benchmark_multiclass_summary.csv`](results/benchmark_multiclass_summary.csv) — partial multiclass summary
+* [`results/benchmark_seed_statistics.csv`](results/benchmark_seed_statistics.csv) — seed-level statistics
+* [`results/benchmark_status_matrix.csv`](results/benchmark_status_matrix.csv) — public artifact coverage
+* [`results/benchmark_pareto_candidates.csv`](results/benchmark_pareto_candidates.csv) — Pareto comparison
+
+Key plot files include:
+
+* [`plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`](plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png)
+* [`plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`](plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png)
+* [`plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png`](plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png)
+* [`plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`](plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png)
+* [`plots/benchmark_pareto_auc_vs_lut_multiclass.png`](plots/benchmark_pareto_auc_vs_lut_multiclass.png)
+* [`plots/benchmark_pareto_auc_vs_latency_multiclass.png`](plots/benchmark_pareto_auc_vs_latency_multiclass.png)
 
 Additional validation and development notes are available in:
 
 * [`REPRODUCIBILITY_REPORT.md`](REPRODUCIBILITY_REPORT.md)
 * [`RESULTS_CHECK.md`](RESULTS_CHECK.md)
-* [`EXTENDED_ABSTRACT_CONSISTENCY.md`](EXTENDED_ABSTRACT_CONSISTENCY.md)
+* [`BENCHMARK_CONSISTENCY.md`](BENCHMARK_CONSISTENCY.md)

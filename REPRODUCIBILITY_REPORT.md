@@ -6,7 +6,7 @@ Repository audited: `fastml_bitnet_benchmark`
 
 ## Summary
 
-This repository is a usable public artifact package for the extended abstract tables and plots, but it is not yet a fully self-contained raw benchmark workspace. The committed CSVs and PNGs support the paper claims, and the lightweight reproduction command now regenerates the main public plots from committed result tables. Full retraining and HLS synthesis still require external dependencies and uncommitted generated artifacts.
+This repository is a usable public artifact package for the benchmark tables and plots, but it is not a fully self-contained raw benchmark workspace. The committed CSVs and PNGs support the paper claims, and the lightweight reproduction command regenerates the main public plots from committed result tables. Full retraining and HLS synthesis still require external dependencies and uncommitted generated artifacts.
 
 Readiness score: 7/10.
 
@@ -15,44 +15,42 @@ Readiness score: 7/10.
 Passed:
 
 ```bash
-python -m py_compile scripts/reproduce_public_artifacts.py scripts/reproduce_paper.py scripts/prepare_abstract_artifacts.py
+python -m py_compile scripts/reproduce_public_artifacts.py scripts/reproduce_paper.py scripts/generate_benchmark_artifacts.py
 python scripts/reproduce_paper.py
-python scripts/prepare_abstract_artifacts.py
+python scripts/generate_benchmark_artifacts.py
 ```
 
 Re-verified on 2026-07-01 with:
 
 ```bash
-python -m py_compile scripts/reproduce_public_artifacts.py scripts/reproduce_paper.py scripts/prepare_abstract_artifacts.py scripts/run_binary_benchmark_workflow.py hardware_benchmark/prepare.py
+python -m py_compile scripts/reproduce_public_artifacts.py scripts/reproduce_paper.py scripts/generate_benchmark_artifacts.py scripts/run_binary_benchmark_workflow.py hardware_benchmark/prepare.py
 python scripts/reproduce_paper.py
-python scripts/prepare_abstract_artifacts.py
+python scripts/generate_benchmark_artifacts.py
 ```
 
 These commands regenerated:
 
-- `results/abstract_seed_statistics.csv`
-- `results/abstract_lowbit_comparison.csv`
-- `results/abstract_pareto_candidates.csv`
+- `results/benchmark_main_binary_table.csv`
+- `results/benchmark_secondary_top_table.csv`
+- `results/benchmark_multiclass_summary.csv`
+- `results/benchmark_seed_statistics.csv`
+- `results/benchmark_lowbit_comparison.csv`
+- `results/benchmark_pareto_candidates.csv`
+- `results/benchmark_status_matrix.csv`
 - `results/public_reproduction_check.json`
-- `plots/abstract_pareto_auc_vs_lut_qg_vs_wzt.png`
-- `plots/abstract_pareto_auc_vs_latency_qg_vs_wzt.png`
-- `plots/AUC_vs_LUT.png`
-- `plots/AUC_vs_latency.png`
-- `plots/abstract_lowbit_comparison.png`
+- `plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`
+- `plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`
+- `plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png`
+- `plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`
+- `plots/benchmark_pareto_auc_vs_lut_multiclass.png`
+- `plots/benchmark_pareto_auc_vs_latency_multiclass.png`
+- `plots/benchmark_lowbit_comparison.png`
 
-Initially failed:
-
-```bash
-python scripts/reproduce_paper.py
-```
-
-Failure reason: the old entrypoint called `stage1_report.py`, which requires `data/cache/openml_42468_nall_splitseed42_train0p64_val0p16_test0p2.json`. That raw cache metadata is not committed. The same path also caused empty abstract tables when raw per-run metric JSON and raw synthesis directories were absent.
-
-Fix applied:
+Current lightweight artifact path:
 
 - Added `scripts/reproduce_public_artifacts.py`.
 - Updated `scripts/reproduce_paper.py` to use the public-safe regeneration path.
-- Updated `scripts/prepare_abstract_artifacts.py` to fall back to the public-safe path when raw per-run JSON files are absent.
+- Updated `scripts/generate_benchmark_artifacts.py` to fall back to the public-safe path when raw per-run JSON files are absent.
 
 ## Environment Used For Audit
 
@@ -82,20 +80,22 @@ The declared `environment.yml` uses Python 3.10 and includes the base scientific
 
 Validated from committed files:
 
-- Primary and secondary abstract tables exist and are complete.
-- Primary `q/g vs W/Z/top` results match expected abstract numbers within rounding.
-- Means and standard deviations in `results/abstract_main_binary_table.csv` are reported over seeds 42, 43, 44.
+- Primary and secondary benchmark tables exist and are complete.
+- The multiclass summary exists and is marked partial where seed or synthesis coverage is incomplete.
+- Primary `q/g vs W/Z/top` results match expected benchmark numbers within rounding.
+- Means and standard deviations in `results/benchmark_main_binary_table.csv` are reported over seeds 42, 43, 44.
 - The class mapping in `benchmark.py` is correct:
   - `g/q -> 0` background
   - `w/z/t -> 1` signal
   - for top-vs-QCD, W and Z are dropped.
 - Split archives exist under `data/splits/`.
-- Public plot regeneration works from committed abstract tables.
+- Each task fits its own `StandardScaler` on training data only; no committed scaler pickle is used.
+- Public plot regeneration works from committed benchmark tables.
 - HLS values are labelled as C-synthesis estimates, not place-and-route.
 
 Validated but with limitation:
 
-- `signal_eff_at_1pct_fpr` is present in abstract tables and matches expected values, but cannot be recomputed from the shipped artifact package because raw prediction scores are not included.
+- `signal_eff_at_1pct_fpr` is present in benchmark tables and matches expected values, but cannot be recomputed from the shipped artifact package because raw prediction scores are not included.
 - Hardware metrics are available in summary CSVs but raw HLS project/report directories are not included.
 
 Not rerun:
@@ -116,10 +116,8 @@ Present:
 
 - `configs/`
 - `data/splits/`
-- `data/synthesis/`
 - `splits/`
-- `artifacts/scaler.pkl`
-- `results/*.csv`
+- `results/benchmark_*.csv`
 - `plots/*.png`
 - benchmark and synthesis scripts
 - README and environment files
@@ -138,7 +136,7 @@ No trained checkpoints, ONNX exports, generated HLS projects, Conifer projects, 
 
 - Added `scripts/reproduce_public_artifacts.py`.
 - Updated `scripts/reproduce_paper.py`.
-- Updated `scripts/prepare_abstract_artifacts.py`.
+- Updated `scripts/generate_benchmark_artifacts.py`.
 - Updated plotting style and public plot aliases.
 - Added environment-variable overrides:
   - `FASTML_HLSENV_PYTHON`
@@ -160,7 +158,7 @@ Full benchmark reproduction:
 ```bash
 python scripts/run_binary_benchmark_workflow.py --class-mode binary_qg_vs_wzt --namespace binary --log-subdir binary_benchmark --seeds 42 43 44
 python scripts/run_binary_benchmark_workflow.py --class-mode binary_top_vs_qg --namespace binary_topqg --log-subdir binary_topqg_benchmark --seeds 42 43 44
-python scripts/prepare_abstract_artifacts.py
+python scripts/generate_benchmark_artifacts.py
 ```
 
 The full workflow requires dependencies and FPGA tools not provided by this repository.

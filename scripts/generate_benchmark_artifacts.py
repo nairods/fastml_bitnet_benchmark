@@ -222,7 +222,7 @@ def write_csv(path: Path, rows: list[dict], fieldnames: list[str] | None = None)
     if fieldnames is None:
         fieldnames = sorted({key for row in rows for key in row})
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -450,11 +450,11 @@ def aggregate_task_model(task: str, spec: dict, include_synth_variant: str | Non
 def build_status_matrix() -> list[dict]:
     rows = []
     plot_targets = {
-        "abstract_main_binary_table.csv",
-        "abstract_secondary_top_table.csv",
-        "abstract_multiclass_summary.csv",
-        "abstract_lowbit_comparison.csv",
-        "abstract_seed_statistics.csv",
+        "benchmark_main_binary_table.csv",
+        "benchmark_secondary_top_table.csv",
+        "benchmark_multiclass_summary.csv",
+        "benchmark_lowbit_comparison.csv",
+        "benchmark_seed_statistics.csv",
     }
     for task in ("binary_qg_vs_wzt", "binary_topqg"):
         for spec in CORE_SPECS:
@@ -541,7 +541,7 @@ def build_status_matrix() -> list[dict]:
     return rows
 
 
-def abstract_table_rows(task: str) -> list[dict]:
+def benchmark_table_rows(task: str) -> list[dict]:
     rows = []
     for spec in CORE_SPECS:
         if spec["suffix"] == "xgboost_bdt_d4_100":
@@ -981,7 +981,7 @@ def plot_lowbit(rows: list[dict]) -> None:
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1 + lines2, labels1 + labels2, frameon=False, loc="lower right")
     fig.tight_layout()
-    fig.savefig(PLOTS / "abstract_lowbit_comparison.png", dpi=200)
+    fig.savefig(PLOTS / "benchmark_lowbit_comparison.png", dpi=200)
     plt.close(fig)
 
 
@@ -1095,7 +1095,7 @@ def main() -> int:
     RESULTS.mkdir(exist_ok=True)
     PLOTS.mkdir(exist_ok=True)
 
-    if not any(RESULTS.glob("*_pytorch.json")) and (RESULTS / "abstract_main_binary_table.csv").exists():
+    if not any(RESULTS.glob("*_pytorch.json")) and (RESULTS / "benchmark_main_binary_table.csv").exists():
         fallback_path = ROOT / "scripts" / "reproduce_public_artifacts.py"
         spec = importlib.util.spec_from_file_location("reproduce_public_artifacts", fallback_path)
         if spec is None or spec.loader is None:
@@ -1122,10 +1122,10 @@ def main() -> int:
         "plots_tables_included",
         "complete",
     ]
-    write_csv(RESULTS / "abstract_status_matrix.csv", status, status_fields)
+    write_csv(RESULTS / "benchmark_status_matrix.csv", status, status_fields)
 
-    primary_raw = abstract_table_rows("binary_qg_vs_wzt")
-    secondary_raw = abstract_table_rows("binary_topqg")
+    primary_raw = benchmark_table_rows("binary_qg_vs_wzt")
+    secondary_raw = benchmark_table_rows("binary_topqg")
     all_raw = primary_raw + secondary_raw
     table_fields = [
         "task",
@@ -1153,12 +1153,12 @@ def main() -> int:
     ]
     primary = format_table(primary_raw)
     secondary = format_table(secondary_raw)
-    write_csv(RESULTS / "abstract_main_binary_table.csv", primary, table_fields)
-    write_csv(RESULTS / "abstract_secondary_top_table.csv", secondary, table_fields)
+    write_csv(RESULTS / "benchmark_main_binary_table.csv", primary, table_fields)
+    write_csv(RESULTS / "benchmark_secondary_top_table.csv", secondary, table_fields)
 
     multiclass = multiclass_summary()
     write_csv(
-        RESULTS / "abstract_multiclass_summary.csv",
+        RESULTS / "benchmark_multiclass_summary.csv",
         multiclass,
         [
             "task",
@@ -1181,7 +1181,7 @@ def main() -> int:
 
     lowbit_raw = [row for row in all_raw if any(term in row["model"] for term in ("QKeras binary", "QKeras ternary", "BitNet", "Bit158"))]
     lowbit = format_table(lowbit_raw)
-    write_csv(RESULTS / "abstract_lowbit_comparison.csv", lowbit, table_fields)
+    write_csv(RESULTS / "benchmark_lowbit_comparison.csv", lowbit, table_fields)
 
     seed_stats = []
     for row in all_raw:
@@ -1207,7 +1207,7 @@ def main() -> int:
             }
         )
     write_csv(
-        RESULTS / "abstract_seed_statistics.csv",
+        RESULTS / "benchmark_seed_statistics.csv",
         seed_stats,
         [
             "task",
@@ -1232,15 +1232,15 @@ def main() -> int:
 
     pareto_rows = pareto(all_raw, "auc_mean", ("lut_mean", "latency_cycles_mean"))
     pareto_csv = format_table(pareto_rows)
-    write_csv(RESULTS / "abstract_pareto_candidates.csv", pareto_csv, table_fields)
+    write_csv(RESULTS / "benchmark_pareto_candidates.csv", pareto_csv, table_fields)
 
-    plot_scatter(all_raw, "lut_mean", "auc_mean", PLOTS / "abstract_pareto_auc_vs_lut.png", "AUC vs LUT C-synthesis estimate", "LUT")
-    plot_scatter(all_raw, "latency_cycles_mean", "auc_mean", PLOTS / "abstract_pareto_auc_vs_latency.png", "AUC vs latency C-synthesis estimate", "Latency cycles")
+    plot_scatter(all_raw, "lut_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_lut.png", "AUC vs LUT C-synthesis estimate", "LUT")
+    plot_scatter(all_raw, "latency_cycles_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_latency.png", "AUC vs latency C-synthesis estimate", "Latency cycles")
     plot_scatter(
         primary_raw,
         "lut_mean",
         "auc_mean",
-        PLOTS / "abstract_pareto_auc_vs_lut_qg_vs_wzt.png",
+        PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs LUT",
         "LUT",
         task_filter="binary_qg_vs_wzt",
@@ -1261,7 +1261,7 @@ def main() -> int:
         primary_raw,
         "latency_cycles_mean",
         "auc_mean",
-        PLOTS / "abstract_pareto_auc_vs_latency_qg_vs_wzt.png",
+        PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs latency",
         "Latency cycles",
         task_filter="binary_qg_vs_wzt",
@@ -1279,9 +1279,102 @@ def main() -> int:
         annotate=True,
         xlim=(0, 30),
     )
+    plot_scatter(
+        secondary_raw,
+        "lut_mean",
+        "auc_mean",
+        PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_top.png",
+        "q/g vs top: AUC vs LUT",
+        "LUT",
+        task_filter="binary_topqg",
+        model_filter={
+            "Dense MLP",
+            "QKeras fixed b7",
+            "HGQ",
+            "QKeras binary",
+            "QKeras ternary",
+            "BitNet binary",
+            "Bit158 sparse ternary",
+            "XGBoost BDT d4x100 (unrolled)",
+        },
+        color_by_arch=True,
+        annotate=True,
+    )
+    plot_scatter(
+        secondary_raw,
+        "latency_cycles_mean",
+        "auc_mean",
+        PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_top.png",
+        "q/g vs top: AUC vs latency",
+        "Latency cycles",
+        task_filter="binary_topqg",
+        model_filter={
+            "Dense MLP",
+            "QKeras fixed b7",
+            "HGQ",
+            "QKeras binary",
+            "QKeras ternary",
+            "BitNet binary",
+            "Bit158 sparse ternary",
+            "XGBoost BDT d4x100 (unrolled)",
+        },
+        color_by_arch=True,
+        annotate=True,
+        xlim=(0, 30),
+    )
+    multiclass_plot_rows = []
+    for row in multiclass:
+        plot_row = row.copy()
+        macro_auc = row.get("macro_auc_mean")
+        plot_row["auc_mean"] = float(macro_auc) if macro_auc not in (None, "") else None
+        for key in ("latency_cycles_mean", "lut_mean"):
+            value = row.get(key)
+            plot_row[key] = float(value) if value not in (None, "") else None
+        multiclass_plot_rows.append(plot_row)
+    plot_scatter(
+        multiclass_plot_rows,
+        "lut_mean",
+        "auc_mean",
+        PLOTS / "benchmark_pareto_auc_vs_lut_multiclass.png",
+        "Multiclass: macro AUC vs LUT",
+        "LUT",
+        ylabel="Macro ROC AUC",
+        task_filter="multiclass",
+        model_filter={
+            "Dense MLP",
+            "QKeras fixed b7",
+            "HGQ",
+            "QKeras binary",
+            "QKeras ternary",
+            "BitNet binary",
+            "Bit158 sparse ternary",
+        },
+        color_by_arch=True,
+        annotate=True,
+    )
+    plot_scatter(
+        multiclass_plot_rows,
+        "latency_cycles_mean",
+        "auc_mean",
+        PLOTS / "benchmark_pareto_auc_vs_latency_multiclass.png",
+        "Multiclass: macro AUC vs latency",
+        "Latency cycles",
+        ylabel="Macro ROC AUC",
+        task_filter="multiclass",
+        model_filter={
+            "Dense MLP",
+            "QKeras fixed b7",
+            "HGQ",
+            "QKeras binary",
+            "QKeras ternary",
+            "BitNet binary",
+            "Bit158 sparse ternary",
+        },
+        color_by_arch=True,
+        annotate=True,
+        xlim=(0, 30),
+    )
     plot_lowbit(all_raw)
-    plot_sweep(precision_sweep_rows(), "bits", "bits", PLOTS / "abstract_precision_sweep.png", "QKeras precision sweep")
-    plot_sweep(bitnet_scaling_rows(), "scale", "scale", PLOTS / "abstract_bitnet_scaling_sweep.png", "BitNet scaling-factor sweep")
 
     complete = [row for row in status if row["complete"]]
     missing = [row for row in status if not row["complete"]]
@@ -1303,9 +1396,9 @@ def main() -> int:
     best_dsp = min(hw_rows, key=lambda row: cost_value(row, "dsp_mean"))
 
     report = [
-        "# Abstract Readiness Report",
+        "# Benchmark Readiness Report",
         "",
-        "Scope: implementation-aware benchmark artifacts for the FastML extended abstract.",
+        "Scope: implementation-aware benchmark artifacts for the FastML benchmark artifact.",
         "Hardware numbers are VU13P, 5 ns HLS C-synthesis estimates, not place-and-route.",
         f"Fixed-background signal efficiency is reported at FPR/background acceptance = {FPR_TARGET:g}.",
         "",
@@ -1350,26 +1443,26 @@ def main() -> int:
             f"synth={row['csynthesis_report_exists']} parsed={row['parsed_hardware_metrics_exist']}"
         )
     if len(missing) > 80:
-        report.append(f"- ... {len(missing) - 80} additional partial rows in abstract_status_matrix.csv")
+        report.append(f"- ... {len(missing) - 80} additional partial rows in benchmark_status_matrix.csv")
     report.extend(["", "## Rerun Commands"])
     commands = missing_commands(missing)
     if commands:
         for command in commands[:30]:
             report.append(f"- `{command}`")
         if len(commands) > 30:
-            report.append(f"- ... {len(commands) - 30} additional commands implied by abstract_status_matrix.csv")
+            report.append(f"- ... {len(commands) - 30} additional commands implied by benchmark_status_matrix.csv")
     else:
         report.append("- No binary workflow reruns required by the status matrix.")
     report.extend(
         [
             "",
-            "## Recommended 4-page Abstract Material",
-            "- Main table: results/abstract_main_binary_table.csv",
-            "- Secondary table: results/abstract_secondary_top_table.csv",
-            "- Low-bit comparison: results/abstract_lowbit_comparison.csv and plots/abstract_lowbit_comparison.png",
-            "- Pareto figures: plots/abstract_pareto_auc_vs_lut.png and plots/abstract_pareto_auc_vs_latency.png",
-            "- Task-filtered Pareto figures: plots/abstract_pareto_auc_vs_lut_qg_vs_wzt.png and plots/abstract_pareto_auc_vs_latency_qg_vs_wzt.png",
-            "- Use multiclass only as a compact supporting table: results/abstract_multiclass_summary.csv",
+            "## Recommended Benchmark Material",
+            "- Main table: results/benchmark_main_binary_table.csv",
+            "- Secondary table: results/benchmark_secondary_top_table.csv",
+            "- Low-bit comparison: results/benchmark_lowbit_comparison.csv and plots/benchmark_lowbit_comparison.png",
+            "- Pareto figures: plots/benchmark_pareto_auc_vs_lut.png and plots/benchmark_pareto_auc_vs_latency.png",
+            "- Task-filtered Pareto figures: plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png and plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
+            "- Use multiclass only as a compact supporting table: results/benchmark_multiclass_summary.csv",
             "",
             "## Interpretation Notes",
             "- BitNet improves over plain QKeras binary/ternary in the primary binary task when comparing AUC at similar 8-11 cycle latencies.",
@@ -1377,10 +1470,10 @@ def main() -> int:
             "- HGQ is the strongest neural resource-efficiency point by LUT for both binary tasks.",
             "- Unrolled BDT is the fastest overall in the secondary task and should be presented separately from tree-mode BDT.",
             "- Bit158 custom_v9 uses the refreshed sparse-pruned path; the sigmoid variant removes the DSP penalty at 8-9 cycles but costs high LUT.",
-            "- Scaling-factor implementation is a first-order hardware variable; use plots/abstract_bitnet_scaling_sweep.png for this point.",
+            "- Scaling-factor implementation is a first-order hardware variable; compare the retained BitNet rows against dense, QKeras, HGQ and BDT rows.",
         ]
     )
-    (RESULTS / "abstract_readiness_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
+    (RESULTS / "benchmark_readiness_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 
     print(json.dumps({
         "status_rows": len(status),

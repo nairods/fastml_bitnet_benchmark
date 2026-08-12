@@ -4,7 +4,6 @@ from __future__ import annotations
 import csv
 import json
 import math
-import shutil
 from pathlib import Path
 
 import matplotlib
@@ -70,7 +69,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for row in rows:
             writer.writerow({key: row.get(key, "") for key in fieldnames})
@@ -142,7 +141,17 @@ def short_label(model: str) -> str:
     }.get(model, model.replace(" binary", ""))
 
 
-def plot_pareto(rows: list[dict[str, str]], x_key: str, output: Path, title: str, xlabel: str) -> None:
+def plot_pareto(
+    rows: list[dict[str, str]],
+    x_key: str,
+    output: Path,
+    title: str,
+    xlabel: str,
+    *,
+    task: str,
+    y_key: str = "auc_mean",
+    ylabel: str = "ROC AUC",
+) -> None:
     plt.rcParams.update(
         {
             "figure.dpi": 300,
@@ -161,10 +170,10 @@ def plot_pareto(rows: list[dict[str, str]], x_key: str, output: Path, title: str
     clean = [
         row
         for row in rows
-        if row.get("task") == "binary_qg_vs_wzt"
+        if row.get("task") == task
         and row.get("model") in PRIMARY_MODELS
         and f(row, x_key) is not None
-        and f(row, "auc_mean") is not None
+        and f(row, y_key) is not None
     ]
     palette = {"64-32-32": "#1f77b4", "128-32": "#d62728", "100 trees depth 4": "#2ca02c"}
     fig, ax = plt.subplots(figsize=(7.4, 4.8), constrained_layout=True)
@@ -176,7 +185,7 @@ def plot_pareto(rows: list[dict[str, str]], x_key: str, output: Path, title: str
             continue
         ax.scatter(
             [float(row[x_key]) for row in subset],
-            [float(row["auc_mean"]) for row in subset],
+            [float(row[y_key]) for row in subset],
             s=70,
             alpha=0.92,
             color=color,
@@ -187,7 +196,7 @@ def plot_pareto(rows: list[dict[str, str]], x_key: str, output: Path, title: str
 
     for index, row in enumerate(clean):
         x = float(row[x_key])
-        y = float(row["auc_mean"])
+        y = float(row[y_key])
         dx = 0.02 * (max(float(r[x_key]) for r in clean) - min(float(r[x_key]) for r in clean))
         dy = 0.0010 if index % 2 else 0.0003
         label_offsets = {
@@ -226,7 +235,7 @@ def plot_pareto(rows: list[dict[str, str]], x_key: str, output: Path, title: str
 
     ax.set_title(title, pad=12)
     ax.set_xlabel(xlabel)
-    ax.set_ylabel("ROC AUC")
+    ax.set_ylabel(ylabel)
     if x_key == "latency_cycles_mean":
         ax.set_xlim(0, 30)
     if x_key == "lut_mean":
@@ -264,7 +273,7 @@ def plot_lowbit(rows: list[dict[str, str]]) -> None:
     handles2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(handles1 + handles2, labels1 + labels2, frameon=False, loc="lower right")
     fig.tight_layout()
-    fig.savefig(PLOTS / "abstract_lowbit_comparison.png", dpi=300)
+    fig.savefig(PLOTS / "benchmark_lowbit_comparison.png", dpi=300)
     plt.close(fig)
 
 
@@ -272,8 +281,10 @@ def main() -> int:
     RESULTS.mkdir(exist_ok=True)
     PLOTS.mkdir(exist_ok=True)
 
-    main_rows = read_csv(RESULTS / "abstract_main_binary_table.csv")
-    top_rows = read_csv(RESULTS / "abstract_secondary_top_table.csv")
+    main_rows = read_csv(RESULTS / "benchmark_main_binary_table.csv")
+    top_rows = read_csv(RESULTS / "benchmark_secondary_top_table.csv")
+    multiclass_path = RESULTS / "benchmark_multiclass_summary.csv"
+    multiclass_rows = read_csv(multiclass_path) if multiclass_path.exists() else []
     all_rows = main_rows + top_rows
     require_complete(main_rows, "primary")
     require_complete(top_rows, "secondary")
@@ -298,36 +309,118 @@ def main() -> int:
         "seeds_synth",
     ]
     seed_stats = [{key: row.get(key, "") for key in seed_stats_fields} for row in all_rows]
-    write_csv(RESULTS / "abstract_seed_statistics.csv", seed_stats, seed_stats_fields)
-    write_csv(RESULTS / "abstract_lowbit_comparison.csv", [row for row in main_rows if row.get("model") in LOWBIT_MODELS], TABLE_FIELDS)
-    write_csv(RESULTS / "abstract_pareto_candidates.csv", pareto(all_rows), TABLE_FIELDS)
+    write_csv(RESULTS / "benchmark_seed_statistics.csv", seed_stats, seed_stats_fields)
+    write_csv(RESULTS / "benchmark_lowbit_comparison.csv", [row for row in main_rows if row.get("model") in LOWBIT_MODELS], TABLE_FIELDS)
+    write_csv(RESULTS / "benchmark_pareto_candidates.csv", pareto(all_rows), TABLE_FIELDS)
+
+    status_fields = [
+        "task",
+        "model",
+        "architecture",
+        "base_run_name",
+        "seeds_metrics",
+        "seeds_synth",
+        "status",
+    ]
+    status_rows = [
+        {key: row.get(key, "") for key in status_fields}
+        for row in main_rows + top_rows + multiclass_rows
+    ]
+    write_csv(RESULTS / "benchmark_status_matrix.csv", status_rows, status_fields)
 
     plot_pareto(
         main_rows,
         "lut_mean",
-        PLOTS / "abstract_pareto_auc_vs_lut_qg_vs_wzt.png",
+        PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs LUT",
         "LUT",
+        task="binary_qg_vs_wzt",
     )
     plot_pareto(
         main_rows,
         "latency_cycles_mean",
-        PLOTS / "abstract_pareto_auc_vs_latency_qg_vs_wzt.png",
+        PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs latency",
         "Latency cycles",
+        task="binary_qg_vs_wzt",
     )
-    shutil.copyfile(PLOTS / "abstract_pareto_auc_vs_lut_qg_vs_wzt.png", PLOTS / "AUC_vs_LUT.png")
-    shutil.copyfile(PLOTS / "abstract_pareto_auc_vs_latency_qg_vs_wzt.png", PLOTS / "AUC_vs_latency.png")
+    plot_pareto(
+        top_rows,
+        "lut_mean",
+        PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_top.png",
+        "q/g vs top: AUC vs LUT",
+        "LUT",
+        task="binary_topqg",
+    )
+    plot_pareto(
+        top_rows,
+        "latency_cycles_mean",
+        PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_top.png",
+        "q/g vs top: AUC vs latency",
+        "Latency cycles",
+        task="binary_topqg",
+    )
+    if multiclass_rows:
+        plot_pareto(
+            multiclass_rows,
+            "lut_mean",
+            PLOTS / "benchmark_pareto_auc_vs_lut_multiclass.png",
+            "Multiclass: macro AUC vs LUT",
+            "LUT",
+            task="multiclass",
+            y_key="macro_auc_mean",
+            ylabel="Macro ROC AUC",
+        )
+        plot_pareto(
+            multiclass_rows,
+            "latency_cycles_mean",
+            PLOTS / "benchmark_pareto_auc_vs_latency_multiclass.png",
+            "Multiclass: macro AUC vs latency",
+            "Latency cycles",
+            task="multiclass",
+            y_key="macro_auc_mean",
+            ylabel="Macro ROC AUC",
+        )
     plot_lowbit(main_rows)
 
     check = {
         "status": "ok",
         "primary_rows": len(main_rows),
         "secondary_rows": len(top_rows),
+        "multiclass_rows": len(multiclass_rows),
         "pareto_rows": len(pareto(all_rows)),
-        "note": "Fixed-FPR signal efficiency is read from shipped abstract tables; raw prediction scores are not included.",
+        "note": "Fixed-FPR signal efficiency is read from shipped benchmark tables; raw prediction scores are not included.",
     }
     (RESULTS / "public_reproduction_check.json").write_text(json.dumps(check, indent=2) + "\n", encoding="utf-8")
+    report = [
+        "# Benchmark Readiness Report",
+        "",
+        "Scope: public benchmark artifact generated from committed summary tables.",
+        "Hardware numbers are VU13P, 5 ns HLS C-synthesis estimates, not place-and-route.",
+        "",
+        "## Regenerated Files",
+        "- `results/benchmark_seed_statistics.csv`",
+        "- `results/benchmark_lowbit_comparison.csv`",
+        "- `results/benchmark_pareto_candidates.csv`",
+        "- `results/benchmark_status_matrix.csv`",
+        "- `plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`",
+        "- `plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`",
+        "- `plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png`",
+        "- `plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`",
+        "- `plots/benchmark_pareto_auc_vs_lut_multiclass.png`",
+        "- `plots/benchmark_pareto_auc_vs_latency_multiclass.png`",
+        "- `plots/benchmark_lowbit_comparison.png`",
+        "",
+        "## Coverage",
+        f"- Primary q/g vs W/Z/top rows: {len(main_rows)}",
+        f"- Secondary q/g vs top rows: {len(top_rows)}",
+        f"- Multiclass rows: {len(multiclass_rows)}; rows remain marked partial when seed metrics or synthesis estimates are incomplete.",
+        "",
+        "## Notes",
+        "- Fixed-FPR signal efficiency is preserved in committed tables because raw per-event prediction scores are not included.",
+        "- The public artifact does not include trained checkpoints, ONNX exports, generated HLS projects, or raw C-synthesis reports.",
+    ]
+    (RESULTS / "benchmark_readiness_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
     print(json.dumps(check, indent=2))
     return 0
 

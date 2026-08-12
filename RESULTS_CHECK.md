@@ -1,6 +1,6 @@
 # Results Check
 
-This file compares the expected extended-abstract values against the committed repository values in `results/abstract_main_binary_table.csv`.
+This file compares the expected benchmark values against the committed repository values in `results/benchmark_main_binary_table.csv`.
 
 All values below are for the primary `q/g vs W/Z/top` task. Neural rows use the `64-32-32` architecture unless otherwise stated. Values are mean +/- standard deviation over seeds 42, 43, 44.
 
@@ -60,14 +60,14 @@ All values below are for the primary `q/g vs W/Z/top` task. Neural rows use the 
 ## Consistency Notes
 
 - The expected values match the committed repository values within ordinary rounding.
-- `signal_eff_at_1pct_fpr` is present and consistent in the abstract tables, but cannot be recomputed from the shipped repository because raw prediction scores are not committed.
+- `signal_eff_at_1pct_fpr` is present and consistent in the benchmark tables, but cannot be recomputed from the shipped repository because raw prediction scores are not committed.
 - Hardware numbers are HLS C-synthesis estimates only.
 - The `BitNet binary` primary table row uses `hls4ml_parent_v26_patch_sigmoid` for the stable DSP-free sigmoid-boundary result.
 - The `Bit158 sparse ternary` primary table row uses `custom_v9_sigmoid`.
 
 ## Robustness Snapshot
 
-The secondary `q/g vs top` table is present in `results/abstract_secondary_top_table.csv`. It supports the same qualitative ordering:
+The secondary `q/g vs top` table is present in `results/benchmark_secondary_top_table.csv`. It supports the same qualitative ordering:
 
 - QKeras fixed b7 is dense-like in AUC.
 - HGQ remains the lowest-LUT neural point.
