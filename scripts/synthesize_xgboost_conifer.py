@@ -68,7 +68,7 @@ def find_csynth_xml(output_dir: Path, project_name: str) -> Path | None:
 
 def main():
     parser = argparse.ArgumentParser(description="Synthesize an XGBoost BDT with Conifer.")
-    parser.add_argument("--config", default="configs/xgboost_bdt.json")
+    parser.add_argument("--config", required=True, help="Path to the trained XGBoost run config.")
     parser.add_argument("--hardware-config", default="configs/hls4ml_hardware.json")
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--project-name", default=None)
