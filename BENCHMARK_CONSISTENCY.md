@@ -56,7 +56,7 @@ Evidence:
 
 - Split code: `benchmark.py`
 - Split archives: `data/splits/openml_42468_nall_splitseed42_*_train0p64_val0p16_test0p2.npz`
-- Public split indices: `splits/train_idx.npy`, `splits/val_idx.npy`, `splits/test_idx.npy`
+- Public split indices: `data/train_idx.npy`, `data/val_idx.npy`, `data/test_idx.npy`
 
 Status: supported for committed split indices. Fresh recomputation requires OpenML access.
 

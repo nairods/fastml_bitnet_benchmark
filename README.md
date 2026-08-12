@@ -49,7 +49,8 @@ Each task uses fixed stratified train/validation/test indices:
 * 20% testing
 * split seed: `42`
 
-Canonical split indices are stored in `splits/`, with task-specific split information under `data/splits/`.
+Canonical split indices are stored in `data/train_idx.npy`, `data/val_idx.npy`, and `data/test_idx.npy`.
+Task-specific split archives are stored separately under `data/splits/`.
 
 Each task fits its own `StandardScaler` on that task's training indices only. No committed `artifacts/scaler.pkl` is used.
 

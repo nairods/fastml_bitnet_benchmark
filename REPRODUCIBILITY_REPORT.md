@@ -114,8 +114,8 @@ Reason: those steps require optional environments, OpenML download/cache rebuild
 Present:
 
 - `configs/`
+- `data/train_idx.npy`, `data/val_idx.npy`, `data/test_idx.npy`
 - `data/splits/`
-- `splits/`
 - `results/benchmark_*.csv`
 - `plots/*.png`
 - benchmark and synthesis scripts
