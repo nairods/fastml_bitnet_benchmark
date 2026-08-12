@@ -845,8 +845,7 @@ def plot_scatter(
     ax.grid(True, alpha=0.18, linewidth=0.7)
     if annotate and labeled_rows:
         annotate_without_overlap(ax, labeled_rows, x_key, y_key)
-    legend_loc = "lower right" if color_by_arch else "best"
-    ax.legend(frameon=False, loc=legend_loc, title="Architecture" if color_by_arch else None)
+    ax.legend(frameon=False, loc="best", title="Architecture" if color_by_arch else None)
     fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 

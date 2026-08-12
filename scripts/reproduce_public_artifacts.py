@@ -241,7 +241,7 @@ def plot_pareto(
     if x_key == "lut_mean":
         ax.xaxis.set_major_formatter(FuncFormatter(lambda value, _pos: f"{int(round(value / 1000.0))}k"))
     ax.grid(True, alpha=0.18, linewidth=0.7)
-    ax.legend(frameon=False, loc="lower right", title="Architecture")
+    ax.legend(frameon=False, loc="best", title="Architecture")
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=300, bbox_inches="tight")
     plt.close(fig)
