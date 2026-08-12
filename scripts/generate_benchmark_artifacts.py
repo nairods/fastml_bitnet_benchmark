@@ -41,6 +41,14 @@ ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
 PLOTS = ROOT / "plots"
 SYNTHESIS = RESULTS / "synthesis"
+OBSOLETE_RESULT_FILES = (
+    "benchmark_seed_statistics.csv",
+    "benchmark_lowbit_comparison.csv",
+    "benchmark_pareto_candidates.csv",
+    "benchmark_status_matrix.csv",
+    "benchmark_readiness_report.md",
+    "public_reproduction_check.json",
+)
 
 SEEDS = (42, 43, 44)
 FPR_TARGET = 0.01
@@ -453,8 +461,6 @@ def build_status_matrix() -> list[dict]:
         "benchmark_main_binary_table.csv",
         "benchmark_secondary_top_table.csv",
         "benchmark_multiclass_summary.csv",
-        "benchmark_lowbit_comparison.csv",
-        "benchmark_seed_statistics.csv",
     }
     for task in ("binary_qg_vs_wzt", "binary_topqg"):
         for spec in CORE_SPECS:
@@ -1149,34 +1155,11 @@ def plot_sweep(rows: list[dict], x_key: str, label_key: str, path: Path, title: 
     plt.close(fig)
 
 
-def missing_commands(status_rows: list[dict]) -> list[str]:
-    commands = []
-    for row in status_rows:
-        if row["task"] == "binary_qg_vs_wzt" and row["complete"] is False:
-            commands.append(f"python scripts/run_binary_benchmark_workflow.py --class-mode binary_qg_vs_wzt --namespace binary --log-subdir binary_benchmark --seeds {row['seed']}")
-        elif row["task"] == "binary_topqg" and row["complete"] is False:
-            commands.append(f"python scripts/run_binary_benchmark_workflow.py --class-mode binary_top_vs_qg --namespace binary_topqg --log-subdir binary_topqg_benchmark --seeds {row['seed']}")
-    return sorted(set(commands))
-
-
-def cost_value(row: dict, key: str) -> float:
-    value = row.get(key)
-    if value is None or value == "":
-        return 1e99
-    return float(value)
-
-
-def markdown_table(rows: list[dict], cols: list[str], limit: int | None = None) -> list[str]:
-    subset = rows[:limit] if limit else rows
-    lines = ["| " + " | ".join(cols) + " |", "| " + " | ".join(["---"] * len(cols)) + " |"]
-    for row in subset:
-        lines.append("| " + " | ".join(str(row.get(col, "")) for col in cols) + " |")
-    return lines
-
-
 def main() -> int:
     RESULTS.mkdir(exist_ok=True)
     PLOTS.mkdir(exist_ok=True)
+    for name in OBSOLETE_RESULT_FILES:
+        (RESULTS / name).unlink(missing_ok=True)
 
     if not any(RESULTS.glob("*_pytorch.json")) and (RESULTS / "benchmark_main_binary_table.csv").exists():
         fallback_path = ROOT / "scripts" / "reproduce_public_artifacts.py"
@@ -1188,25 +1171,6 @@ def main() -> int:
         return module.main()
 
     status = build_status_matrix()
-    status_fields = [
-        "task",
-        "model",
-        "architecture",
-        "base_run_name",
-        "run_name",
-        "seed",
-        "config_exists",
-        "trained_weights_exist",
-        "test_metrics_exist",
-        "onnx_or_export_exists",
-        "hls_project_exists",
-        "csynthesis_report_exists",
-        "parsed_hardware_metrics_exist",
-        "plots_tables_included",
-        "complete",
-    ]
-    write_csv(RESULTS / "benchmark_status_matrix.csv", status, status_fields)
-
     primary_raw = benchmark_table_rows("binary_qg_vs_wzt")
     secondary_raw = benchmark_table_rows("binary_topqg")
     all_raw = primary_raw + secondary_raw
@@ -1262,60 +1226,8 @@ def main() -> int:
         ],
     )
 
-    lowbit_raw = [row for row in all_raw if any(term in row["model"] for term in ("QKeras binary", "QKeras ternary", "BitNet", "Bit158"))]
-    lowbit = format_table(lowbit_raw)
-    write_csv(RESULTS / "benchmark_lowbit_comparison.csv", lowbit, table_fields)
-
-    seed_stats = []
-    for row in all_raw:
-        seed_stats.append(
-            {
-                "task": row["task"],
-                "model": row["model"],
-                "architecture": row["architecture"],
-                "base_run_name": row["base_run_name"],
-                "synth_variant": row["synth_variant"],
-                "accuracy_mean": fmt(row["accuracy_mean"]),
-                "accuracy_std": fmt(row["accuracy_std"]),
-                "auc_mean": fmt(row["auc_mean"]),
-                "auc_std": fmt(row["auc_std"]),
-                "latency_cycles_mean": fmt(row["latency_cycles_mean"], 2),
-                "latency_cycles_std": fmt(row["latency_cycles_std"], 2),
-                "lut_mean": fmt(row["lut_mean"], 1),
-                "lut_std": fmt(row["lut_std"], 1),
-                "dsp_mean": fmt(row["dsp_mean"], 2),
-                "dsp_std": fmt(row["dsp_std"], 2),
-                "seeds_metrics": row["seeds_metrics"],
-                "seeds_synth": row["seeds_synth"],
-            }
-        )
-    write_csv(
-        RESULTS / "benchmark_seed_statistics.csv",
-        seed_stats,
-        [
-            "task",
-            "model",
-            "architecture",
-            "base_run_name",
-            "synth_variant",
-            "accuracy_mean",
-            "accuracy_std",
-            "auc_mean",
-            "auc_std",
-            "latency_cycles_mean",
-            "latency_cycles_std",
-            "lut_mean",
-            "lut_std",
-            "dsp_mean",
-            "dsp_std",
-            "seeds_metrics",
-            "seeds_synth",
-        ],
-    )
-
     pareto_rows = pareto(all_raw, "auc_mean", ("lut_mean", "latency_cycles_mean"))
     pareto_csv = format_table(pareto_rows)
-    write_csv(RESULTS / "benchmark_pareto_candidates.csv", pareto_csv, table_fields)
 
     plot_scatter(all_raw, "lut_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_lut.png", "AUC vs LUT C-synthesis estimate", "LUT")
     plot_scatter(all_raw, "latency_cycles_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_latency.png", "AUC vs latency C-synthesis estimate", "Latency cycles")
@@ -1404,101 +1316,6 @@ def main() -> int:
     )
     complete = [row for row in status if row["complete"]]
     missing = [row for row in status if not row["complete"]]
-    failed = []
-    for status_path in (RESULTS / "binary_benchmark_workflow_status.json", RESULTS / "binary_topqg_benchmark_workflow_status.json"):
-        payload = read_json(status_path)
-        for key, value in payload.items():
-            if isinstance(value, dict) and value.get("status") == "failed":
-                if ":synth_" in key:
-                    run_name, variant = key.split(":synth_", 1)
-                    if synth_candidates(run_name, [variant]):
-                        continue
-                failed.append({"key": key, "log": value.get("log"), "returncode": value.get("returncode")})
-
-    hw_rows = [row for row in all_raw if row.get("latency_cycles_mean") is not None]
-    best_acc = max(all_raw, key=lambda row: row.get("accuracy_mean") or -1)
-    best_latency = min(hw_rows, key=lambda row: cost_value(row, "latency_cycles_mean"))
-    best_lut = min(hw_rows, key=lambda row: cost_value(row, "lut_mean"))
-    best_dsp = min(hw_rows, key=lambda row: cost_value(row, "dsp_mean"))
-
-    report = [
-        "# Benchmark Readiness Report",
-        "",
-        "Scope: implementation-aware benchmark artifacts for the FastML benchmark artifact.",
-        "Hardware numbers are VU13P, 5 ns HLS C-synthesis estimates, not place-and-route.",
-        f"Fixed-background signal efficiency is reported at FPR/background acceptance = {FPR_TARGET:g}.",
-        "",
-        "## Completeness",
-        f"- Complete status rows: {len(complete)} / {len(status)}",
-        f"- Missing or partial status rows: {len(missing)} / {len(status)}",
-        "- Primary binary q/g vs W/Z/top has full seed metrics and full synthesis coverage for the core rows used in the main table.",
-        "- Secondary q/g vs top has full seed metrics and full synthesis coverage for the core rows used in the secondary table.",
-        "- Multiclass is included as compact supporting material only.",
-        "",
-        "## Best Rows",
-        f"- Best accuracy: {best_acc['task']} {best_acc['model']} {best_acc['architecture']} acc={fmt(best_acc['accuracy_mean'])} AUC={fmt(best_acc['auc_mean'])}",
-        f"- Best latency: {best_latency['task']} {best_latency['model']} {best_latency['architecture']} latency={fmt(best_latency['latency_cycles_mean'], 2)} cycles LUT={fmt(best_latency['lut_mean'], 1)}",
-        f"- Best LUT: {best_lut['task']} {best_lut['model']} {best_lut['architecture']} LUT={fmt(best_lut['lut_mean'], 1)} latency={fmt(best_lut['latency_cycles_mean'], 2)} cycles",
-        f"- Best DSP: {best_dsp['task']} {best_dsp['model']} {best_dsp['architecture']} DSP={fmt(best_dsp['dsp_mean'], 2)} LUT={fmt(best_dsp['lut_mean'], 1)}",
-        "",
-        "## Pareto Candidates",
-    ]
-    report.extend(
-        markdown_table(
-            pareto_csv,
-            ["task", "model", "architecture", "auc_mean", "latency_cycles_mean", "lut_mean", "dsp_mean"],
-            limit=20,
-        )
-    )
-    report.extend(
-        [
-            "",
-            "## Failed Jobs",
-        ]
-    )
-    if failed:
-        for row in failed:
-            report.append(f"- {row['key']}: returncode={row['returncode']} log={row['log']}")
-    else:
-        report.append("- None recorded in the benchmark workflow status files.")
-    report.extend(["", "## Missing Or Partial Rows"])
-    for row in missing[:80]:
-        report.append(
-            f"- {row['task']} {row['run_name']}: config={row['config_exists']} weights={row['trained_weights_exist']} "
-            f"metrics={row['test_metrics_exist']} export={row['onnx_or_export_exists']} hls={row['hls_project_exists']} "
-            f"synth={row['csynthesis_report_exists']} parsed={row['parsed_hardware_metrics_exist']}"
-        )
-    if len(missing) > 80:
-        report.append(f"- ... {len(missing) - 80} additional partial rows in benchmark_status_matrix.csv")
-    report.extend(["", "## Rerun Commands"])
-    commands = missing_commands(missing)
-    if commands:
-        for command in commands[:30]:
-            report.append(f"- `{command}`")
-        if len(commands) > 30:
-            report.append(f"- ... {len(commands) - 30} additional commands implied by benchmark_status_matrix.csv")
-    else:
-        report.append("- No binary workflow reruns required by the status matrix.")
-    report.extend(
-        [
-            "",
-            "## Recommended Benchmark Material",
-            "- Main table: results/benchmark_main_binary_table.csv",
-            "- Secondary table: results/benchmark_secondary_top_table.csv",
-            "- Pareto figures: plots/benchmark_pareto_auc_vs_lut.png and plots/benchmark_pareto_auc_vs_latency.png",
-            "- Task-filtered Pareto figures: plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png and plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
-            "- Use multiclass only as a compact supporting table: results/benchmark_multiclass_summary.csv",
-            "",
-            "## Interpretation Notes",
-            "- BitNet improves over plain QKeras binary/ternary in the primary binary task when comparing AUC at similar 8-11 cycle latencies.",
-            "- BitNet does not dominate HGQ or unrolled BDT in this artifact set.",
-            "- HGQ is the strongest neural resource-efficiency point by LUT for both binary tasks.",
-            "- Unrolled BDT is the fastest overall in the secondary task and should be presented separately from tree-mode BDT.",
-            "- Bit158 custom_v9 uses the refreshed sparse-pruned path; the sigmoid variant removes the DSP penalty at 8-9 cycles but costs high LUT.",
-            "- Scaling-factor implementation is a first-order hardware variable; compare the retained BitNet rows against dense, QKeras, HGQ and BDT rows.",
-        ]
-    )
-    (RESULTS / "benchmark_readiness_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 
     print(json.dumps({
         "status_rows": len(status),

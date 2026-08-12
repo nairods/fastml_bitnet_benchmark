@@ -1,8 +1,0 @@
-task,model,architecture,base_run_name,accuracy_mean,accuracy_std,auc_mean,auc_std,signal_eff_at_1pct_fpr_mean,signal_eff_at_1pct_fpr_std,synth_variant,latency_cycles_mean,latency_cycles_std,ii_cycles_mean,lut_mean,lut_std,ff_mean,dsp_mean,bram18_mean,seeds_metrics,seeds_synth,status
-binary_topqg,QKeras fixed b7,128-32,binary_topqg_qkeras_topo_128_32_b7,0.91051,0.00028,0.96450,0.00016,0.57601,0.00056,hls4ml_latency_rf1,8.00,0.00,1.00,186231.7,758.7,15922.0,680.00,1.00,3,3,complete
-binary_topqg,QKeras fixed b7,64-32-32,binary_topqg_qkeras_mlp_64_32_32_b7,0.91026,0.00061,0.96419,0.00018,0.57841,0.00536,hls4ml_latency_rf1,9.33,0.58,1.00,134430.3,353.6,10870.0,627.00,1.00,3,3,complete
-binary_topqg,HGQ,64-32-32,binary_topqg_hgq_mlp_64_32_32,0.90720,0.00092,0.96192,0.00034,0.56312,0.00703,hls4ml_latency_rf1,7.33,0.58,1.00,9170.0,924.3,801.7,0.00,1.00,3,3,complete
-binary_topqg,HGQ,128-32,binary_topqg_hgq_topo_128_32,0.90711,0.00050,0.96159,0.00050,0.55084,0.00264,hls4ml_latency_rf1,6.67,0.58,1.00,8059.3,694.9,675.7,0.00,1.00,3,3,complete
-binary_topqg,XGBoost BDT d4x100 (unrolled),100 trees depth 4,binary_topqg_xgboost_bdt_d4_100,0.90322,0.00046,0.95842,0.00020,0.54208,0.00475,conifer_unrolled,4.00,0.00,1.00,74494.0,69.1,3242.7,0.00,,3,3,complete
-binary_qg_vs_wzt,HGQ,64-32-32,binary_hgq_mlp_64_32_32,0.85380,0.00118,0.92761,0.00024,0.57113,0.00123,hls4ml_latency_rf1,6.33,0.58,1.00,8043.0,794.4,616.3,0.00,1.00,3,3,complete
-binary_qg_vs_wzt,XGBoost BDT d4x100 (unrolled),100 trees depth 4,binary_xgboost_bdt_d4_100,0.84719,0.00025,0.92075,0.00003,0.56123,0.00061,conifer_unrolled,4.00,0.00,1.00,74042.7,119.9,2804.0,0.00,,3,3,complete

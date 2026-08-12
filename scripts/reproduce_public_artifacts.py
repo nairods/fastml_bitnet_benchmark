@@ -16,6 +16,14 @@ from matplotlib.ticker import FuncFormatter
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
 PLOTS = ROOT / "plots"
+OBSOLETE_RESULT_FILES = (
+    "benchmark_seed_statistics.csv",
+    "benchmark_lowbit_comparison.csv",
+    "benchmark_pareto_candidates.csv",
+    "benchmark_status_matrix.csv",
+    "benchmark_readiness_report.md",
+    "public_reproduction_check.json",
+)
 
 PRIMARY_MODELS = {
     "Dense MLP",
@@ -28,51 +36,9 @@ PRIMARY_MODELS = {
     "XGBoost BDT d4x100 (unrolled)",
 }
 
-LOWBIT_MODELS = {
-    "QKeras binary",
-    "QKeras ternary",
-    "BitNet binary",
-    "Bit158 sparse ternary",
-}
-
-TABLE_FIELDS = [
-    "task",
-    "model",
-    "architecture",
-    "base_run_name",
-    "accuracy_mean",
-    "accuracy_std",
-    "auc_mean",
-    "auc_std",
-    "signal_eff_at_1pct_fpr_mean",
-    "signal_eff_at_1pct_fpr_std",
-    "synth_variant",
-    "latency_cycles_mean",
-    "latency_cycles_std",
-    "ii_cycles_mean",
-    "lut_mean",
-    "lut_std",
-    "ff_mean",
-    "dsp_mean",
-    "bram18_mean",
-    "seeds_metrics",
-    "seeds_synth",
-    "status",
-]
-
-
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
-
-
-def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: row.get(key, "") for key in fieldnames})
 
 
 def f(row: dict[str, str], key: str) -> float | None:
@@ -250,6 +216,8 @@ def plot_pareto(
 def main() -> int:
     RESULTS.mkdir(exist_ok=True)
     PLOTS.mkdir(exist_ok=True)
+    for name in OBSOLETE_RESULT_FILES:
+        (RESULTS / name).unlink(missing_ok=True)
 
     main_rows = read_csv(RESULTS / "benchmark_main_binary_table.csv")
     top_rows = read_csv(RESULTS / "benchmark_secondary_top_table.csv")
@@ -258,45 +226,6 @@ def main() -> int:
     all_rows = main_rows + top_rows
     require_complete(main_rows, "primary")
     require_complete(top_rows, "secondary")
-
-    seed_stats_fields = [
-        "task",
-        "model",
-        "architecture",
-        "base_run_name",
-        "synth_variant",
-        "accuracy_mean",
-        "accuracy_std",
-        "auc_mean",
-        "auc_std",
-        "latency_cycles_mean",
-        "latency_cycles_std",
-        "lut_mean",
-        "lut_std",
-        "dsp_mean",
-        "dsp_std",
-        "seeds_metrics",
-        "seeds_synth",
-    ]
-    seed_stats = [{key: row.get(key, "") for key in seed_stats_fields} for row in all_rows]
-    write_csv(RESULTS / "benchmark_seed_statistics.csv", seed_stats, seed_stats_fields)
-    write_csv(RESULTS / "benchmark_lowbit_comparison.csv", [row for row in main_rows if row.get("model") in LOWBIT_MODELS], TABLE_FIELDS)
-    write_csv(RESULTS / "benchmark_pareto_candidates.csv", pareto(all_rows), TABLE_FIELDS)
-
-    status_fields = [
-        "task",
-        "model",
-        "architecture",
-        "base_run_name",
-        "seeds_metrics",
-        "seeds_synth",
-        "status",
-    ]
-    status_rows = [
-        {key: row.get(key, "") for key in status_fields}
-        for row in main_rows + top_rows + multiclass_rows
-    ]
-    write_csv(RESULTS / "benchmark_status_matrix.csv", status_rows, status_fields)
 
     plot_pareto(
         main_rows,
@@ -359,35 +288,6 @@ def main() -> int:
         "pareto_rows": len(pareto(all_rows)),
         "note": "Fixed-FPR signal efficiency is read from shipped benchmark tables; raw prediction scores are not included.",
     }
-    (RESULTS / "public_reproduction_check.json").write_text(json.dumps(check, indent=2) + "\n", encoding="utf-8")
-    report = [
-        "# Benchmark Readiness Report",
-        "",
-        "Scope: public benchmark artifact generated from committed summary tables.",
-        "Hardware numbers are VU13P, 5 ns HLS C-synthesis estimates, not place-and-route.",
-        "",
-        "## Regenerated Files",
-        "- `results/benchmark_seed_statistics.csv`",
-        "- `results/benchmark_lowbit_comparison.csv`",
-        "- `results/benchmark_pareto_candidates.csv`",
-        "- `results/benchmark_status_matrix.csv`",
-        "- `plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`",
-        "- `plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`",
-        "- `plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png`",
-        "- `plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`",
-        "- `plots/benchmark_pareto_auc_vs_lut_multiclass.png`",
-        "- `plots/benchmark_pareto_auc_vs_latency_multiclass.png`",
-        "",
-        "## Coverage",
-        f"- Primary q/g vs W/Z/top rows: {len(main_rows)}",
-        f"- Secondary q/g vs top rows: {len(top_rows)}",
-        f"- Multiclass rows: {len(multiclass_rows)}; rows remain marked partial when seed metrics or synthesis estimates are incomplete.",
-        "",
-        "## Notes",
-        "- Fixed-FPR signal efficiency is preserved in committed tables because raw per-event prediction scores are not included.",
-        "- The public artifact does not include trained checkpoints, ONNX exports, generated HLS projects, or raw C-synthesis reports.",
-    ]
-    (RESULTS / "benchmark_readiness_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
     print(json.dumps(check, indent=2))
     return 0
 

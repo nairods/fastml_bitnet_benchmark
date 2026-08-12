@@ -1,8 +1,0 @@
-{
-  "status": "ok",
-  "primary_rows": 16,
-  "secondary_rows": 16,
-  "multiclass_rows": 12,
-  "pareto_rows": 7,
-  "note": "Fixed-FPR signal efficiency is read from shipped benchmark tables; raw prediction scores are not included."
-}

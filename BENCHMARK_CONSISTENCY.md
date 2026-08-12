@@ -68,7 +68,6 @@ Evidence:
 
 - Workflow script: `scripts/run_binary_benchmark_workflow.py`
 - Benchmark tables: `results/benchmark_main_binary_table.csv`, `results/benchmark_secondary_top_table.csv`
-- Seed summary: `results/benchmark_seed_statistics.csv`
 
 Status: supported. Main rows report `seeds_metrics=3` and `seeds_synth=3`.
 
@@ -92,7 +91,7 @@ Evidence:
 
 - Hardware configs: `configs/hardware_benchmark.json`, `configs/hls4ml_hardware.json`
 - Synthesis scripts: `scripts/synthesize_hls4ml_project.py`, `scripts/synthesize_xgboost_conifer.py`, BitNet synthesis scripts
-- Artifact coverage: `results/benchmark_status_matrix.csv`
+- Artifact coverage: `seeds_metrics`, `seeds_synth`, and `status` columns in the committed benchmark tables
 - README hardware section
 
 Status: supported in summaries. Raw HLS reports are not committed.
@@ -165,7 +164,7 @@ Claim: C-synthesis estimates should not be interpreted as place-and-route result
 Evidence:
 
 - README hardware section
-- `results/benchmark_readiness_report.md`
+- HLS boundary notes in the committed benchmark tables
 
 Status: supported.
 

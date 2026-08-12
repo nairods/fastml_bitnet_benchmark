@@ -174,9 +174,6 @@ Key result files include:
 * [`results/benchmark_main_binary_table.csv`](results/benchmark_main_binary_table.csv) — primary benchmark
 * [`results/benchmark_secondary_top_table.csv`](results/benchmark_secondary_top_table.csv) — robustness task
 * [`results/benchmark_multiclass_summary.csv`](results/benchmark_multiclass_summary.csv) — partial multiclass summary
-* [`results/benchmark_seed_statistics.csv`](results/benchmark_seed_statistics.csv) — seed-level statistics
-* [`results/benchmark_status_matrix.csv`](results/benchmark_status_matrix.csv) — public artifact coverage
-* [`results/benchmark_pareto_candidates.csv`](results/benchmark_pareto_candidates.csv) — Pareto comparison
 
 Key plot files include:
 

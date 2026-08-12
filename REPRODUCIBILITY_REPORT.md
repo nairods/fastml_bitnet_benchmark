@@ -33,11 +33,6 @@ These commands regenerated:
 - `results/benchmark_main_binary_table.csv`
 - `results/benchmark_secondary_top_table.csv`
 - `results/benchmark_multiclass_summary.csv`
-- `results/benchmark_seed_statistics.csv`
-- `results/benchmark_lowbit_comparison.csv`
-- `results/benchmark_pareto_candidates.csv`
-- `results/benchmark_status_matrix.csv`
-- `results/public_reproduction_check.json`
 - `plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png`
 - `plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png`
 - `plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png`
@@ -116,7 +111,7 @@ Present:
 - `configs/hardware_benchmark.json`, `configs/hls4ml_hardware.json`
 - `data/train_idx.npy`, `data/val_idx.npy`, `data/test_idx.npy`
 - `data/splits/`
-- `results/benchmark_*.csv`
+- `results/benchmark_main_binary_table.csv`, `results/benchmark_secondary_top_table.csv`, `results/benchmark_multiclass_summary.csv`
 - `plots/*.png`
 - benchmark and synthesis scripts
 - README and environment files
