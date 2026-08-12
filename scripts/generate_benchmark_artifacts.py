@@ -665,6 +665,18 @@ def short_model_label(model: str) -> str:
     return labels.get(model, model)
 
 
+ABSTRACT_PARETO_MODELS = {
+    "Dense MLP",
+    "QKeras fixed b7",
+    "HGQ",
+    "QKeras binary",
+    "QKeras ternary",
+    "BitNet binary",
+    "Bit158 sparse ternary",
+    "XGBoost BDT d4x100 (unrolled)",
+}
+
+
 def annotate_without_overlap(ax, rows: list[dict], x_key: str, y_key: str) -> None:
     fig = ax.figure
     fig.canvas.draw()
@@ -846,6 +858,102 @@ def plot_scatter(
     if annotate and labeled_rows:
         annotate_without_overlap(ax, labeled_rows, x_key, y_key)
     ax.legend(frameon=False, loc="best", title="Architecture" if color_by_arch else None)
+    fig.savefig(path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_abstract_style_pareto(
+    rows: list[dict],
+    x_key: str,
+    y_key: str,
+    path: Path,
+    title: str,
+    xlabel: str,
+    *,
+    ylabel: str = "ROC AUC",
+    task_filter: str,
+    model_filter: set[str] = ABSTRACT_PARETO_MODELS,
+) -> None:
+    clean = [
+        row
+        for row in rows
+        if row.get("task") == task_filter
+        and row.get("model") in model_filter
+        and row.get(x_key) not in (None, "")
+        and row.get(y_key) not in (None, "")
+    ]
+    palette = {"64-32-32": "#1f77b4", "128-32": "#d62728", "100 trees depth 4": "#2ca02c"}
+    fig, ax = plt.subplots(figsize=(7.4, 4.8), constrained_layout=True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    for arch, color in palette.items():
+        subset = [row for row in clean if row["architecture"] == arch]
+        if not subset:
+            continue
+        ax.scatter(
+            [float(row[x_key]) for row in subset],
+            [float(row[y_key]) for row in subset],
+            s=70,
+            alpha=0.92,
+            color=color,
+            edgecolors="white",
+            linewidths=0.7,
+            label=arch,
+        )
+
+    if clean:
+        x_span = max(float(row[x_key]) for row in clean) - min(float(row[x_key]) for row in clean)
+    else:
+        x_span = 1.0
+    for index, row in enumerate(clean):
+        x = float(row[x_key])
+        y = float(row[y_key])
+        dx = 0.02 * x_span
+        dy = 0.0010 if index % 2 else 0.0003
+        label_offsets = {
+            ("latency_cycles_mean", "Dense MLP", "64-32-32"): (0.45, 0.0002),
+            ("latency_cycles_mean", "Dense MLP", "128-32"): (0.45, -0.0020),
+            ("latency_cycles_mean", "QKeras fixed b7", "64-32-32"): (0.35, 0.0005),
+            ("latency_cycles_mean", "QKeras fixed b7", "128-32"): (-0.65, 0.0008),
+            ("latency_cycles_mean", "HGQ", "64-32-32"): (0.35, -0.0019),
+            ("latency_cycles_mean", "HGQ", "128-32"): (0.35, 0.0010),
+            ("latency_cycles_mean", "Bit158 sparse ternary", "64-32-32"): (0.35, -0.0017),
+            ("latency_cycles_mean", "Bit158 sparse ternary", "128-32"): (0.35, 0.0010),
+            ("latency_cycles_mean", "BitNet binary", "128-32"): (0.35, -0.0020),
+            ("lut_mean", "HGQ", "64-32-32"): (3500.0, -0.0020),
+            ("lut_mean", "HGQ", "128-32"): (3500.0, 0.0010),
+            ("lut_mean", "QKeras fixed b7", "64-32-32"): (4500.0, 0.0008),
+            ("lut_mean", "QKeras fixed b7", "128-32"): (4500.0, -0.0030),
+            ("lut_mean", "Dense MLP", "64-32-32"): (4500.0, 0.0008),
+            ("lut_mean", "Dense MLP", "128-32"): (4500.0, 0.0008),
+            ("lut_mean", "Bit158 sparse ternary", "64-32-32"): (4500.0, -0.0015),
+            ("lut_mean", "Bit158 sparse ternary", "128-32"): (4500.0, 0.0010),
+        }
+        dx, dy = label_offsets.get((x_key, row["model"], row["architecture"]), (dx, dy))
+        if x_key == "latency_cycles_mean" and row["model"] == "QKeras fixed b7" and row["architecture"] == "128-32":
+            dx = -1.0
+        if x_key == "lut_mean" and row["model"] == "QKeras fixed b7" and row["architecture"] == "128-32":
+            dx = -8000
+        ax.annotate(
+            short_model_label(row["model"]),
+            (x, y),
+            xytext=(x + dx, y + dy),
+            fontsize=8,
+            ha="left" if dx >= 0 else "right",
+            va="bottom",
+            arrowprops=dict(arrowstyle="-", lw=0.35, color="0.5", shrinkA=0, shrinkB=0),
+        )
+
+    ax.set_title(title, pad=12)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if x_key == "latency_cycles_mean":
+        ax.set_xlim(0, 30)
+    if x_key == "lut_mean":
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda value, _pos: f"{int(round(value / 1000.0))}k"))
+    ax.grid(True, alpha=0.18, linewidth=0.7)
+    ax.legend(frameon=False, loc="best", title="Architecture")
+    path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
@@ -1211,7 +1319,7 @@ def main() -> int:
 
     plot_scatter(all_raw, "lut_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_lut.png", "AUC vs LUT C-synthesis estimate", "LUT")
     plot_scatter(all_raw, "latency_cycles_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_latency.png", "AUC vs latency C-synthesis estimate", "Latency cycles")
-    plot_scatter(
+    plot_abstract_style_pareto(
         primary_raw,
         "lut_mean",
         "auc_mean",
@@ -1219,20 +1327,8 @@ def main() -> int:
         "q/g vs W/Z/top: AUC vs LUT",
         "LUT",
         task_filter="binary_qg_vs_wzt",
-        model_filter={
-            "Dense MLP",
-            "QKeras fixed b7",
-            "HGQ",
-            "QKeras binary",
-            "QKeras ternary",
-            "BitNet binary",
-            "Bit158 sparse ternary",
-            "XGBoost BDT d4x100 (unrolled)",
-        },
-        color_by_arch=True,
-        annotate=True,
     )
-    plot_scatter(
+    plot_abstract_style_pareto(
         primary_raw,
         "latency_cycles_mean",
         "auc_mean",
@@ -1240,21 +1336,8 @@ def main() -> int:
         "q/g vs W/Z/top: AUC vs latency",
         "Latency cycles",
         task_filter="binary_qg_vs_wzt",
-        model_filter={
-            "Dense MLP",
-            "QKeras fixed b7",
-            "HGQ",
-            "QKeras binary",
-            "QKeras ternary",
-            "BitNet binary",
-            "Bit158 sparse ternary",
-            "XGBoost BDT d4x100 (unrolled)",
-        },
-        color_by_arch=True,
-        annotate=True,
-        xlim=(0, 30),
     )
-    plot_scatter(
+    plot_abstract_style_pareto(
         secondary_raw,
         "lut_mean",
         "auc_mean",
@@ -1262,20 +1345,8 @@ def main() -> int:
         "q/g vs top: AUC vs LUT",
         "LUT",
         task_filter="binary_topqg",
-        model_filter={
-            "Dense MLP",
-            "QKeras fixed b7",
-            "HGQ",
-            "QKeras binary",
-            "QKeras ternary",
-            "BitNet binary",
-            "Bit158 sparse ternary",
-            "XGBoost BDT d4x100 (unrolled)",
-        },
-        color_by_arch=True,
-        annotate=True,
     )
-    plot_scatter(
+    plot_abstract_style_pareto(
         secondary_raw,
         "latency_cycles_mean",
         "auc_mean",
@@ -1283,19 +1354,6 @@ def main() -> int:
         "q/g vs top: AUC vs latency",
         "Latency cycles",
         task_filter="binary_topqg",
-        model_filter={
-            "Dense MLP",
-            "QKeras fixed b7",
-            "HGQ",
-            "QKeras binary",
-            "QKeras ternary",
-            "BitNet binary",
-            "Bit158 sparse ternary",
-            "XGBoost BDT d4x100 (unrolled)",
-        },
-        color_by_arch=True,
-        annotate=True,
-        xlim=(0, 30),
     )
     multiclass_plot_rows = []
     for row in multiclass:
@@ -1306,7 +1364,7 @@ def main() -> int:
             value = row.get(key)
             plot_row[key] = float(value) if value not in (None, "") else None
         multiclass_plot_rows.append(plot_row)
-    plot_scatter(
+    plot_abstract_style_pareto(
         multiclass_plot_rows,
         "lut_mean",
         "auc_mean",
@@ -1324,10 +1382,8 @@ def main() -> int:
             "BitNet binary",
             "Bit158 sparse ternary",
         },
-        color_by_arch=True,
-        annotate=True,
     )
-    plot_scatter(
+    plot_abstract_style_pareto(
         multiclass_plot_rows,
         "latency_cycles_mean",
         "auc_mean",
@@ -1345,9 +1401,6 @@ def main() -> int:
             "BitNet binary",
             "Bit158 sparse ternary",
         },
-        color_by_arch=True,
-        annotate=True,
-        xlim=(0, 30),
     )
     complete = [row for row in status if row["complete"]]
     missing = [row for row in status if not row["complete"]]
