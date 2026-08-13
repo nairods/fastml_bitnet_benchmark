@@ -108,7 +108,7 @@ Reason: those steps require optional environments, OpenML download/cache rebuild
 
 Present:
 
-- `configs/hardware_benchmark.json`, `configs/hls4ml_hardware.json`
+- `configs/hardware_benchmark.json`
 - `data/train_idx.npy`, `data/val_idx.npy`, `data/test_idx.npy`
 - `data/splits/`
 - `results/benchmark_main_binary_table.csv`, `results/benchmark_secondary_top_table.csv`, `results/benchmark_multiclass_summary.csv`

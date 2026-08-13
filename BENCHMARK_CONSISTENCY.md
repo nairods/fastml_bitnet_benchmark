@@ -89,7 +89,7 @@ Claim: Hardware target is VU13P, 5 ns, II=1, HLS C-synthesis only.
 
 Evidence:
 
-- Hardware configs: `configs/hardware_benchmark.json`, `configs/hls4ml_hardware.json`
+- Hardware config: `configs/hardware_benchmark.json`
 - Synthesis scripts: `scripts/synthesize_hls4ml_project.py`, `scripts/synthesize_xgboost_conifer.py`, BitNet synthesis scripts
 - Artifact coverage: `seeds_metrics`, `seeds_synth`, and `status` columns in the committed benchmark tables
 - README hardware section

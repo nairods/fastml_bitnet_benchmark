@@ -25,13 +25,5 @@
     "native": "Architecture-faithful conversion and quantization.",
     "controlled": "Common HLS arithmetic widths; native weight representation retained.",
     "expert_custom": "Architecture-specific optimizations reported separately."
-  },
-  "validation": {
-    "reference_directory": "data/synthesis/reference_predictions",
-    "input": "data/synthesis/x_test.npy",
-    "labels": "data/synthesis/y_test.npy",
-    "hard_accuracy_cutoff": null,
-    "hard_macro_auc_cutoff": null,
-    "require_finite": true
   }
 }

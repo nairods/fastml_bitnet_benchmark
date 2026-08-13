@@ -98,7 +98,7 @@ def main():
         "",
         "Deep Sets and MLP-Mixer still require custom neural-network conversion, and XGBoost BDT needs a tree-specific hardware flow rather than the dense-model hls4ml path.",
         "",
-        "See `results/hardware_readiness.csv`, `data/synthesis/precision_policies.json`, and `configs/hls4ml_hardware.json`.",
+        "See `results/hardware_readiness.csv`, `data/synthesis/precision_policies.json`, and `configs/hardware_benchmark.json`.",
     ]
     (RESULTS / "hardware_readiness.md").write_text("\n".join(markdown) + "\n", encoding="utf-8")
     print(f"Wrote readiness records for {len(rows)} configurations")

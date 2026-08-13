@@ -24,6 +24,14 @@ def load_pickle(path):
         return pickle.load(handle)
 
 
+def hardware_target(config):
+    target = config.get("target", config)
+    return {
+        "part": target["part"],
+        "clock_period": target.get("clock_period", target.get("clock_period_ns")),
+    }
+
+
 def ensure_clean_dir(path: Path):
     if path.exists():
         shutil.rmtree(path)
@@ -69,7 +77,7 @@ def find_csynth_xml(output_dir: Path, project_name: str) -> Path | None:
 def main():
     parser = argparse.ArgumentParser(description="Synthesize an XGBoost BDT with Conifer.")
     parser.add_argument("--config", required=True, help="Path to the trained XGBoost run config.")
-    parser.add_argument("--hardware-config", default="configs/hls4ml_hardware.json")
+    parser.add_argument("--hardware-config", default="configs/hardware_benchmark.json")
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--project-name", default=None)
     parser.add_argument("--output-dir", default=None)
@@ -88,6 +96,7 @@ def main():
 
     config = load_json(ROOT / args.config)
     hw = load_json(ROOT / args.hardware_config)
+    target = hardware_target(hw)
     run_name = args.run_name or config["run_name"]
     model_run_name = args.model_run_name or config["run_name"]
     variant_suffix = "conifer_unrolled" if args.unroll else "conifer"
@@ -117,8 +126,8 @@ def main():
     conifer_config = conifer.backends.xilinxhls.auto_config(granularity="full")
     conifer_config["ProjectName"] = project_name
     conifer_config["OutputDir"] = str(output_dir)
-    conifer_config["XilinxPart"] = args.part or hw["part"]
-    conifer_config["ClockPeriod"] = args.clock_period or hw["clock_period"]
+    conifer_config["XilinxPart"] = args.part or target["part"]
+    conifer_config["ClockPeriod"] = args.clock_period or target["clock_period"]
     conifer_config["Unroll"] = bool(args.unroll)
     conifer_config["InputPrecision"] = args.precision
     conifer_config["ThresholdPrecision"] = args.precision
