@@ -9,8 +9,8 @@ qg_vs_top,QKeras binary,64-32-32,topqg_qkeras_binary_64_32_32,0.87429,0.00594,0.
 qg_vs_top,QKeras binary,128-32,topqg_qkeras_binary_128_32,0.87817,0.00545,0.94043,0.00237,0.40939,0.03845,hls4ml_latency_rf1,22.67,0.58,1.00,91305.7,922.5,26201.3,0.00,1.00,3,3,complete
 qg_vs_top,QKeras ternary,64-32-32,topqg_qkeras_ternary_64_32_32,0.88522,0.00145,0.94142,0.00122,0.43325,0.04209,hls4ml_latency_rf1,12.67,1.15,1.00,27826.0,3409.6,8404.7,0.00,1.00,3,3,complete
 qg_vs_top,QKeras ternary,128-32,topqg_qkeras_ternary_128_32,0.88850,0.00285,0.94621,0.00171,0.51534,0.08426,hls4ml_latency_rf1,10.33,0.58,1.00,26776.0,4809.4,12230.0,0.00,1.00,3,3,complete
-qg_vs_top,BitNet binary,64-32-32,topqg_bitnet_64_32_32,0.89779,0.00070,0.95405,0.00040,0.48125,0.01858,hls4ml_parent_v26_patch_sigmoid,11.67,0.58,1.00,88871.0,2707.8,16269.3,0.00,1.00,3,3,complete
-qg_vs_top,BitNet binary,128-32,topqg_bitnet_128_32,0.89723,0.00177,0.95418,0.00119,0.48176,0.00669,custom_v9_sigmoid,20.67,0.58,1.00,199806.3,2434.4,38710.3,24.00,1.00,3,3,complete
-qg_vs_top,Bit158 sparse ternary,64-32-32,topqg_bit158_64_32_32,0.89900,0.00061,0.95563,0.00085,0.49838,0.01759,custom_v9_sigmoid,9.00,0.00,1.00,100334.7,1693.1,17210.3,1.33,1.00,3,3,complete
-qg_vs_top,Bit158 sparse ternary,128-32,topqg_bit158_128_32,0.89991,0.00149,0.95680,0.00078,0.50787,0.01358,custom_v9_sigmoid,8.00,0.00,1.00,111489.0,2193.7,22416.0,0.00,1.00,3,3,complete
+qg_vs_top,BitNet binary,64-32-32,topqg_bitnet_64_32_32,0.89779,0.00070,0.95405,0.00040,0.48125,0.01858,hls4ml_custom_latency_rf1,11.67,0.58,1.00,88871.0,2707.8,16269.3,0.00,1.00,3,3,complete
+qg_vs_top,BitNet binary,128-32,topqg_bitnet_128_32,0.89723,0.00177,0.95418,0.00119,0.48176,0.00669,hls4ml_custom_latency_rf1,20.67,0.58,1.00,199806.3,2434.4,38710.3,24.00,1.00,3,3,complete
+qg_vs_top,Bit158 sparse ternary,64-32-32,topqg_bit158_64_32_32,0.89900,0.00061,0.95563,0.00085,0.49838,0.01759,hls4ml_custom_latency_rf1,9.00,0.00,1.00,100334.7,1693.1,17210.3,1.33,1.00,3,3,complete
+qg_vs_top,Bit158 sparse ternary,128-32,topqg_bit158_128_32,0.89991,0.00149,0.95680,0.00078,0.50787,0.01358,hls4ml_custom_latency_rf1,8.00,0.00,1.00,111489.0,2193.7,22416.0,0.00,1.00,3,3,complete
 qg_vs_top,XGBoost BDT (unrolled),100 trees depth 4,topqg_xgboost_bdt_d4_100,0.90322,0.00046,0.95842,0.00020,0.54208,0.00475,conifer_unrolled,4.00,0.00,1.00,74494.0,69.1,3242.7,0.00,,3,3,complete

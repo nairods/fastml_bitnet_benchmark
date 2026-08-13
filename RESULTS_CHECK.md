@@ -62,8 +62,8 @@ All values below are for the primary `q/g vs W/Z/top` task. Neural rows use the 
 - The expected values match the committed repository values within ordinary rounding.
 - `signal_eff_at_1pct_fpr` is present and consistent in the benchmark tables, but cannot be recomputed from the shipped repository because raw prediction scores are not committed.
 - Hardware numbers are HLS C-synthesis estimates only.
-- The `BitNet binary` primary table row uses `hls4ml_parent_v26_patch_sigmoid` for the stable DSP-free sigmoid-boundary result.
-- The `Bit158 sparse ternary` primary table row uses `custom_v9_sigmoid`.
+- BitNet and Bit158 custom rows are reported publicly as `hls4ml_custom_latency_rf1`.
+- Internally, those rows may come from the parent hls4ml v26 sigmoid patch, the custom v9 sigmoid exporter, or the native multiclass hls4ml route.
 
 ## Robustness Snapshot
 

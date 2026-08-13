@@ -131,6 +131,13 @@ PUBLIC_MULTICLASS_BASES = {
     "xgboost_bdt": "multiclass_xgboost_bdt_d4_100",
 }
 
+PUBLIC_SYNTH_VARIANTS = {
+    "hls4ml_parent_v26_patch_sigmoid": "hls4ml_custom_latency_rf1",
+    "custom_v9_sigmoid": "hls4ml_custom_latency_rf1",
+    "custom_native_tree1": "hls4ml_custom_latency_rf1",
+    "custom_native": "hls4ml_custom_latency_rf1",
+}
+
 CORE_SPECS = [
     {
         "key": "mlp_64_32_32",
@@ -364,6 +371,17 @@ def public_binary_base_for(task: str, suffix: str) -> str:
 
 def public_multiclass_base_for(base: str) -> str:
     return PUBLIC_MULTICLASS_BASES.get(base, base)
+
+
+def public_synth_variant(variant: str) -> str:
+    if "," not in variant:
+        return PUBLIC_SYNTH_VARIANTS.get(variant, variant)
+    public_names = []
+    for name in variant.split(","):
+        public_name = PUBLIC_SYNTH_VARIANTS.get(name, name)
+        if public_name not in public_names:
+            public_names.append(public_name)
+    return ",".join(public_names)
 
 
 def run_for(base: str, seed: int) -> str:
@@ -666,7 +684,7 @@ def format_table(rows: list[dict]) -> list[dict]:
                 "auc_std": fmt(row["auc_std"]),
                 "signal_eff_at_1pct_fpr_mean": fmt(row["signal_eff_at_1pct_fpr_mean"]),
                 "signal_eff_at_1pct_fpr_std": fmt(row["signal_eff_at_1pct_fpr_std"]),
-                "synth_variant": row["synth_variant"],
+                "synth_variant": public_synth_variant(row["synth_variant"]),
                 "latency_cycles_mean": fmt(row["latency_cycles_mean"], 2),
                 "latency_cycles_std": fmt(row["latency_cycles_std"], 2),
                 "ii_cycles_mean": fmt(row["ii_cycles_mean"], 2),
@@ -713,7 +731,7 @@ def multiclass_summary() -> list[dict]:
                 "accuracy_std": fmt(stdev([m.get("accuracy") for m in metrics])),
                 "macro_auc_mean": fmt(mean([m.get("macro_auc") for m in metrics])),
                 "macro_auc_std": fmt(stdev([m.get("macro_auc") for m in metrics])),
-                "synth_variant": synths[0]["variant"] if synths else "",
+                "synth_variant": public_synth_variant(synths[0]["variant"]) if synths else "",
                 "latency_cycles_mean": fmt(mean([s.get("latency_cycles") for s in synths]), 2),
                 "lut_mean": fmt(mean([s.get("lut") for s in synths]), 1),
                 "dsp_mean": fmt(mean([s.get("dsp") for s in synths]), 2),
