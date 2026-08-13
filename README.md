@@ -184,6 +184,5 @@ Key plot files include:
 
 Additional validation and development notes are available in:
 
-* [`REPRODUCIBILITY_REPORT.md`](REPRODUCIBILITY_REPORT.md)
 * [`RESULTS_CHECK.md`](RESULTS_CHECK.md)
 * [`BENCHMARK_CONSISTENCY.md`](BENCHMARK_CONSISTENCY.md)
