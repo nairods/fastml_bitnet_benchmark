@@ -181,8 +181,3 @@ Key plot files include:
 * [`plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png`](plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png)
 * [`plots/benchmark_pareto_auc_vs_lut_multiclass.png`](plots/benchmark_pareto_auc_vs_lut_multiclass.png)
 * [`plots/benchmark_pareto_auc_vs_latency_multiclass.png`](plots/benchmark_pareto_auc_vs_latency_multiclass.png)
-
-Additional validation and development notes are available in:
-
-* [`RESULTS_CHECK.md`](RESULTS_CHECK.md)
-* [`BENCHMARK_CONSISTENCY.md`](BENCHMARK_CONSISTENCY.md)
