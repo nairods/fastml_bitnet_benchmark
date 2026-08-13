@@ -33,7 +33,7 @@ PRIMARY_MODELS = {
     "QKeras ternary",
     "BitNet binary",
     "Bit158 sparse ternary",
-    "XGBoost BDT d4x100 (unrolled)",
+    "XGBoost BDT (unrolled)",
 }
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -103,7 +103,7 @@ def short_label(model: str) -> str:
         "QKeras binary": "QK binary",
         "QKeras ternary": "QK ternary",
         "Bit158 sparse ternary": "Bit158b",
-        "XGBoost BDT d4x100 (unrolled)": "BDT unrolled",
+        "XGBoost BDT (unrolled)": "BDT unrolled",
     }.get(model, model.replace(" binary", ""))
 
 
@@ -233,7 +233,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs LUT",
         "LUT",
-        task="binary_qg_vs_wzt",
+        task="qg_vs_wzt",
     )
     plot_pareto(
         main_rows,
@@ -241,7 +241,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs latency",
         "Latency cycles",
-        task="binary_qg_vs_wzt",
+        task="qg_vs_wzt",
     )
     plot_pareto(
         top_rows,
@@ -249,7 +249,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_top.png",
         "q/g vs top: AUC vs LUT",
         "LUT",
-        task="binary_topqg",
+        task="qg_vs_top",
     )
     plot_pareto(
         top_rows,
@@ -257,7 +257,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_top.png",
         "q/g vs top: AUC vs latency",
         "Latency cycles",
-        task="binary_topqg",
+        task="qg_vs_top",
     )
     if multiclass_rows:
         plot_pareto(

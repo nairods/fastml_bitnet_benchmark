@@ -56,11 +56,13 @@ FPR_TARGET = 0.01
 TASKS = {
     "binary_qg_vs_wzt": {
         "label": "q/g vs W/Z/top",
+        "public_task": "qg_vs_wzt",
         "prefix": "binary_",
         "cache": "openml_42468_nall_splitseed42_classbinary_qg_vs_wzt_train0p64_val0p16_test0p2.npz",
     },
     "binary_topqg": {
         "label": "q/g vs top",
+        "public_task": "qg_vs_top",
         "prefix": "binary_topqg_",
         "cache": "openml_42468_nall_splitseed42_classbinary_top_vs_qg_train0p64_val0p16_test0p2.npz",
     },
@@ -69,6 +71,64 @@ TASKS = {
         "prefix": "",
         "cache": "openml_42468_nall_splitseed42_classmulticlass_train0p64_val0p16_test0p2.npz",
     },
+}
+
+PUBLIC_TASK_LABELS = {
+    "qg_vs_wzt": "q/g vs W/Z/top",
+    "qg_vs_top": "q/g vs top",
+    "multiclass": "5-class q/g/W/Z/top",
+}
+
+PUBLIC_BINARY_SUFFIXES = {
+    "binary_qg_vs_wzt": {
+        "mlp_baseline_64_32_32": "dense_baseline_64_32_32",
+        "mlp_topo_128_32": "dense_128_32",
+        "qkeras_mlp_64_32_32_b7": "qkeras_b7_64_32_32",
+        "qkeras_topo_128_32_b7": "qkeras_b7_128_32",
+        "hgq_mlp_64_32_32": "hgq_64_32_32",
+        "hgq_topo_128_32": "hgq_128_32",
+        "qkeras_mlp_binary_64_32_32": "qkeras_binary_64_32_32",
+        "qkeras_topo_binary_128_32": "qkeras_binary_128_32",
+        "qkeras_mlp_ternary_64_32_32": "qkeras_ternary_64_32_32",
+        "qkeras_topo_ternary_128_32": "qkeras_ternary_128_32",
+        "bitnet_sigmoid_f7_fixed": "bitnet_64_32_32",
+        "bitnet_topo_sigmoid_f7_fixed": "bitnet_128_32",
+        "bit158_sigmoid_f7_fixed": "bit158_64_32_32",
+        "bit158_topo_sigmoid_f7_fixed": "bit158_128_32",
+        "xgboost_bdt_d4_100": "xgboost_bdt_d4_100",
+    },
+    "binary_topqg": {
+        "mlp_baseline_64_32_32": "topqg_dense_baseline_64_32_32",
+        "mlp_topo_128_32": "topqg_dense_baseline_128_32",
+        "qkeras_mlp_64_32_32_b7": "topqg_qkeras_b7_64_32_32",
+        "qkeras_topo_128_32_b7": "topqg_qkeras_b7_128_32",
+        "hgq_mlp_64_32_32": "topqg_hgq_64_32_32",
+        "hgq_topo_128_32": "topqg_hgq_128_32",
+        "qkeras_mlp_binary_64_32_32": "topqg_qkeras_binary_64_32_32",
+        "qkeras_topo_binary_128_32": "topqg_qkeras_binary_128_32",
+        "qkeras_mlp_ternary_64_32_32": "topqg_qkeras_ternary_64_32_32",
+        "qkeras_topo_ternary_128_32": "topqg_qkeras_ternary_128_32",
+        "bitnet_sigmoid_f7_fixed": "topqg_bitnet_64_32_32",
+        "bitnet_topo_sigmoid_f7_fixed": "topqg_bitnet_128_32",
+        "bit158_sigmoid_f7_fixed": "topqg_bit158_64_32_32",
+        "bit158_topo_sigmoid_f7_fixed": "topqg_bit158_128_32",
+        "xgboost_bdt_d4_100": "topqg_xgboost_bdt_d4_100",
+    },
+}
+
+PUBLIC_MULTICLASS_BASES = {
+    "mlp_baseline": "multiclass_dense_baseline_64_32_32",
+    "mlp_topo": "multiclass_dense_baseline_128_32",
+    "qkeras_mlp_b7": "multiclass_qkeras_b7_64_32_32",
+    "qkeras_mlp_binary": "multiclass_qkeras_binary_64_32_32",
+    "qkeras_mlp_ternary": "multiclass_qkeras_ternary_64_32_32",
+    "hgq_mlp": "multiclass_hgq_64_32_32",
+    "hgq_mlp_topo": "multiclass_hgq_128_32",
+    "bitnet_mlp_f7_fixed": "multiclass_bitnet_64_32_32",
+    "bitnet_topo_f7_fixed": "multiclass_bitnet_128_32",
+    "bit158_mlp_f7_fixed": "multiclass_bit158_64_32_32",
+    "bit158_topo_f7_fixed": "multiclass_bit158_128_32",
+    "xgboost_bdt": "multiclass_xgboost_bdt_d4_100",
 }
 
 CORE_SPECS = [
@@ -194,7 +254,7 @@ CORE_SPECS = [
     },
     {
         "key": "xgboost_bdt_d4_100",
-        "model_family": "XGBoost BDT d4x100",
+        "model_family": "XGBoost BDT",
         "architecture": "100 trees depth 4",
         "suffix": "xgboost_bdt_d4_100",
         "backend": "xgboost",
@@ -214,7 +274,7 @@ MULTICLASS_SPECS = [
     ("BitNet binary", "128-32", "bitnet_topo_f7_fixed", "pytorch", ["custom_native_tree1", "custom_native"]),
     ("Bit158 sparse ternary", "64-32-32", "bit158_mlp_f7_fixed", "pytorch", ["custom_native_tree1", "custom_native"]),
     ("Bit158 sparse ternary", "128-32", "bit158_topo_f7_fixed", "pytorch", ["custom_native_tree1", "custom_native"]),
-    ("XGBoost BDT", "available", "xgboost_bdt", "xgboost", ["conifer_unrolled", "conifer_tree"]),
+    ("XGBoost BDT", "100 trees depth 4", "xgboost_bdt", "xgboost", []),
 ]
 
 
@@ -274,6 +334,24 @@ def weights_suffixes(backend: str) -> tuple[str, ...]:
 
 def base_for(task: str, suffix: str) -> str:
     return f"{TASKS[task]['prefix']}{suffix}"
+
+
+def public_task_for(task: str) -> str:
+    return TASKS.get(task, {}).get("public_task", task)
+
+
+def task_label_for(task: str) -> str:
+    if task in TASKS:
+        return TASKS[task]["label"]
+    return PUBLIC_TASK_LABELS.get(task, task)
+
+
+def public_binary_base_for(task: str, suffix: str) -> str:
+    return PUBLIC_BINARY_SUFFIXES.get(task, {}).get(suffix, base_for(task, suffix))
+
+
+def public_multiclass_base_for(base: str) -> str:
+    return PUBLIC_MULTICLASS_BASES.get(base, base)
 
 
 def run_for(base: str, seed: int) -> str:
@@ -406,6 +484,7 @@ def signal_efficiency_at_fpr(run_name: str, task: str) -> float | None:
 
 def aggregate_task_model(task: str, spec: dict, include_synth_variant: str | None = None) -> dict:
     base = base_for(task, spec["suffix"])
+    public_base = public_binary_base_for(task, spec["suffix"])
     metrics = load_metrics(base, spec["backend"])
     acc = [row.get("accuracy") for row in metrics]
     auc = [row.get("macro_auc") for row in metrics]
@@ -421,12 +500,13 @@ def aggregate_task_model(task: str, spec: dict, include_synth_variant: str | Non
         if synth:
             synth_rows.append(synth)
     row = {
-        "task": task,
+        "task": public_task_for(task),
         "task_label": TASKS[task]["label"],
         "model_key": spec["key"],
         "model": spec["model_family"],
         "architecture": spec["architecture"],
-        "base_run_name": base,
+        "base_run_name": public_base,
+        "raw_base_run_name": base,
         "backend": spec["backend"],
         "seeds_metrics": len(metrics),
         "seeds_synth": len(synth_rows),
@@ -551,10 +631,9 @@ def benchmark_table_rows(task: str) -> list[dict]:
     rows = []
     for spec in CORE_SPECS:
         if spec["suffix"] == "xgboost_bdt_d4_100":
-            for variant in ("conifer_unrolled", "conifer_tree"):
-                row = aggregate_task_model(task, spec, include_synth_variant=variant)
-                row["model"] = f"{row['model']} ({variant.replace('conifer_', '')})"
-                rows.append(row)
+            row = aggregate_task_model(task, spec, include_synth_variant="conifer_unrolled")
+            row["model"] = "XGBoost BDT (unrolled)"
+            rows.append(row)
         else:
             rows.append(aggregate_task_model(task, spec))
     return rows
@@ -595,6 +674,7 @@ def format_table(rows: list[dict]) -> list[dict]:
 def multiclass_summary() -> list[dict]:
     rows = []
     for family, architecture, base, backend, variants in MULTICLASS_SPECS:
+        public_base = public_multiclass_base_for(base)
         metrics = []
         for seed in SEEDS:
             path = RESULTS / f"{run_for(base, seed)}{metric_suffix(backend)}"
@@ -603,19 +683,20 @@ def multiclass_summary() -> list[dict]:
             if path.exists():
                 metrics.append(read_json(path))
         synths = []
-        for seed in SEEDS:
-            run_name = run_for(base, seed)
-            synth = preferred_synth(run_name, variants)
-            if not synth and seed == 42:
-                synth = preferred_synth(base, variants)
-            if synth:
-                synths.append(synth)
+        if variants:
+            for seed in SEEDS:
+                run_name = run_for(base, seed)
+                synth = preferred_synth(run_name, variants)
+                if not synth and seed == 42:
+                    synth = preferred_synth(base, variants)
+                if synth:
+                    synths.append(synth)
         rows.append(
             {
                 "task": "multiclass",
                 "model": family,
                 "architecture": architecture,
-                "base_run_name": base,
+                "base_run_name": public_base,
                 "accuracy_mean": fmt(mean([m.get("accuracy") for m in metrics])),
                 "accuracy_std": fmt(stdev([m.get("accuracy") for m in metrics])),
                 "macro_auc_mean": fmt(mean([m.get("macro_auc") for m in metrics])),
@@ -665,6 +746,7 @@ def short_model_label(model: str) -> str:
         "QKeras ternary": "QK ternary",
         "BitNet binary": "BitNet",
         "Bit158 sparse ternary": "Bit158b",
+        "XGBoost BDT (unrolled)": "BDT unrolled",
         "XGBoost BDT d4x100 (unrolled)": "BDT unrolled",
         "XGBoost BDT d4x100 (tree)": "BDT tree",
     }
@@ -679,7 +761,7 @@ ABSTRACT_PARETO_MODELS = {
     "QKeras ternary",
     "BitNet binary",
     "Bit158 sparse ternary",
-    "XGBoost BDT d4x100 (unrolled)",
+    "XGBoost BDT (unrolled)",
 }
 
 
@@ -802,11 +884,15 @@ def plot_scatter(
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     markers = {
+        "qg_vs_wzt": "o",
+        "qg_vs_top": "s",
         "binary_qg_vs_wzt": "o",
         "binary_topqg": "s",
         "multiclass": "^",
     }
     task_palette = {
+        "qg_vs_wzt": "#1f77b4",
+        "qg_vs_top": "#d62728",
         "binary_qg_vs_wzt": "#1f77b4",
         "binary_topqg": "#d62728",
         "multiclass": "#2ca02c",
@@ -816,7 +902,7 @@ def plot_scatter(
         "128-32": "#d62728",
         "100 trees depth 4": "#2ca02c",
     }
-    tasks = (task_filter,) if task_filter else ("binary_qg_vs_wzt", "binary_topqg")
+    tasks = (task_filter,) if task_filter else ("qg_vs_wzt", "qg_vs_top")
     labeled_rows = []
     for task in tasks:
         if task is None:
@@ -844,7 +930,7 @@ def plot_scatter(
             ax.scatter(
                 [row[x_key] for row in subset],
                 [row[y_key] for row in subset],
-                label=TASKS[task]["label"],
+                label=task_label_for(task),
                 marker=markers[task],
                 s=70,
                 alpha=0.92,
@@ -1229,8 +1315,6 @@ def main() -> int:
     pareto_rows = pareto(all_raw, "auc_mean", ("lut_mean", "latency_cycles_mean"))
     pareto_csv = format_table(pareto_rows)
 
-    plot_scatter(all_raw, "lut_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_lut.png", "AUC vs LUT C-synthesis estimate", "LUT")
-    plot_scatter(all_raw, "latency_cycles_mean", "auc_mean", PLOTS / "benchmark_pareto_auc_vs_latency.png", "AUC vs latency C-synthesis estimate", "Latency cycles")
     plot_abstract_style_pareto(
         primary_raw,
         "lut_mean",
@@ -1238,7 +1322,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs LUT",
         "LUT",
-        task_filter="binary_qg_vs_wzt",
+        task_filter="qg_vs_wzt",
     )
     plot_abstract_style_pareto(
         primary_raw,
@@ -1247,7 +1331,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_wzt.png",
         "q/g vs W/Z/top: AUC vs latency",
         "Latency cycles",
-        task_filter="binary_qg_vs_wzt",
+        task_filter="qg_vs_wzt",
     )
     plot_abstract_style_pareto(
         secondary_raw,
@@ -1256,7 +1340,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_lut_qg_vs_top.png",
         "q/g vs top: AUC vs LUT",
         "LUT",
-        task_filter="binary_topqg",
+        task_filter="qg_vs_top",
     )
     plot_abstract_style_pareto(
         secondary_raw,
@@ -1265,7 +1349,7 @@ def main() -> int:
         PLOTS / "benchmark_pareto_auc_vs_latency_qg_vs_top.png",
         "q/g vs top: AUC vs latency",
         "Latency cycles",
-        task_filter="binary_topqg",
+        task_filter="qg_vs_top",
     )
     multiclass_plot_rows = []
     for row in multiclass:
