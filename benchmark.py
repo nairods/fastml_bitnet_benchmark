@@ -38,6 +38,49 @@ from model_registry import build_registered_model, resolve_model_name
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIRS = ("data", "models", "onnx", "plots", "logs", "results")
+PUBLIC_PLOT_BASE_NAMES = {
+    "binary_mlp_baseline_64_32_32": "dense_baseline_64_32_32",
+    "binary_mlp_topo_128_32": "dense_128_32",
+    "binary_qkeras_mlp_64_32_32_b7": "qkeras_b7_64_32_32",
+    "binary_qkeras_topo_128_32_b7": "qkeras_b7_128_32",
+    "binary_hgq_mlp_64_32_32": "hgq_64_32_32",
+    "binary_hgq_topo_128_32": "hgq_128_32",
+    "binary_qkeras_mlp_binary_64_32_32": "qkeras_binary_64_32_32",
+    "binary_qkeras_topo_binary_128_32": "qkeras_binary_128_32",
+    "binary_qkeras_mlp_ternary_64_32_32": "qkeras_ternary_64_32_32",
+    "binary_qkeras_topo_ternary_128_32": "qkeras_ternary_128_32",
+    "binary_bitnet_sigmoid_f7_fixed": "bitnet_64_32_32",
+    "binary_bitnet_f7_fixed": "bitnet_64_32_32",
+    "binary_bitnet_topo_sigmoid_f7_fixed": "bitnet_128_32",
+    "binary_bitnet_topo_f7_fixed": "bitnet_128_32",
+    "binary_bit158_sigmoid_f7_fixed": "bit158_64_32_32",
+    "binary_bit158_f7_fixed": "bit158_64_32_32",
+    "binary_bit158_64_32_32": "bit158_64_32_32",
+    "binary_bit158_topo_sigmoid_f7_fixed": "bit158_128_32",
+    "binary_bit158_topo_f7_fixed": "bit158_128_32",
+    "binary_bit158_128_32": "bit158_128_32",
+    "binary_topqg_mlp_baseline_64_32_32": "topqg_dense_baseline_64_32_32",
+    "binary_topqg_mlp_topo_128_32": "topqg_dense_baseline_128_32",
+    "binary_topqg_qkeras_mlp_64_32_32_b7": "topqg_qkeras_b7_64_32_32",
+    "binary_topqg_qkeras_topo_128_32_b7": "topqg_qkeras_b7_128_32",
+    "binary_topqg_qkeras_b7_128_32": "topqg_qkeras_b7_128_32",
+    "binary_topqg_hgq_mlp_64_32_32": "topqg_hgq_64_32_32",
+    "binary_topqg_hgq_topo_128_32": "topqg_hgq_128_32",
+    "binary_topqg_qkeras_mlp_binary_64_32_32": "topqg_qkeras_binary_64_32_32",
+    "binary_topqg_qkeras_topo_binary_128_32": "topqg_qkeras_binary_128_32",
+    "binary_topqg_qkeras_binary_128_32": "topqg_qkeras_binary_128_32",
+    "binary_topqg_qkeras_mlp_ternary_64_32_32": "topqg_qkeras_ternary_64_32_32",
+    "binary_topqg_qkeras_topo_ternary_128_32": "topqg_qkeras_ternary_128_32",
+    "binary_topqg_qkeras_ternary_128_32": "topqg_qkeras_ternary_128_32",
+    "binary_topqg_bitnet_sigmoid_f7_fixed": "topqg_bitnet_64_32_32",
+    "binary_topqg_bitnet_f7_fixed": "topqg_bitnet_64_32_32",
+    "binary_topqg_bitnet_topo_sigmoid_f7_fixed": "topqg_bitnet_128_32",
+    "binary_topqg_bitnet_topo_f7_fixed": "topqg_bitnet_128_32",
+    "binary_topqg_bit158_sigmoid_f7_fixed": "topqg_bit158_64_32_32",
+    "binary_topqg_bit158_f7_fixed": "topqg_bit158_64_32_32",
+    "binary_topqg_bit158_topo_sigmoid_f7_fixed": "topqg_bit158_128_32",
+    "binary_topqg_bit158_topo_f7_fixed": "topqg_bit158_128_32",
+}
 MULTICLASS_LABELS = ["g", "q", "w", "z", "t"]
 MULTICLASS_NAMES = ["gluon", "quark", "W", "Z", "top"]
 MULTICLASS_INDEX_BY_LABEL = {label: index for index, label in enumerate(MULTICLASS_LABELS)}
@@ -589,7 +632,14 @@ def compute_metrics(y_true, probabilities, class_names=None):
     }
 
 
+def public_plot_run_name(run_name):
+    base, sep, seed = run_name.partition("__seed")
+    public_base = PUBLIC_PLOT_BASE_NAMES.get(base, base)
+    return f"{public_base}{sep}{seed}" if sep else public_base
+
+
 def plot_training(history, run_name):
+    plot_name = public_plot_run_name(run_name)
     figure, axes = plt.subplots(1, 2, figsize=(11, 4))
     axes[0].plot(history["train_loss"], label="train")
     axes[0].plot(history["validation_loss"], label="validation")
@@ -600,11 +650,12 @@ def plot_training(history, run_name):
     axes[1].set_xlabel("epoch")
     axes[1].set_ylabel("validation accuracy")
     figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{run_name}_training.png", dpi=150)
+    figure.savefig(ROOT / "plots" / f"{plot_name}_training.png", dpi=150)
     plt.close(figure)
 
 
 def plot_evaluation(y_true, probabilities, run_name, class_names=None):
+    plot_name = public_plot_run_name(run_name)
     class_count = probabilities.shape[1]
     if class_names is None:
         class_names = [str(index) for index in range(class_count)]
@@ -623,7 +674,7 @@ def plot_evaluation(y_true, probabilities, run_name, class_names=None):
             axis.text(column, row, f"{matrix[row, column]:.2f}", ha="center")
     figure.colorbar(image, ax=axis)
     figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{run_name}_confusion_matrix.png", dpi=150)
+    figure.savefig(ROOT / "plots" / f"{plot_name}_confusion_matrix.png", dpi=150)
     plt.close(figure)
 
     binary_targets = np.eye(class_count, dtype=np.int8)[y_true]
@@ -642,7 +693,7 @@ def plot_evaluation(y_true, probabilities, run_name, class_names=None):
     axis.grid(True, which="both")
     axis.legend()
     figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{run_name}_roc.png", dpi=150)
+    figure.savefig(ROOT / "plots" / f"{plot_name}_roc.png", dpi=150)
     plt.close(figure)
 
     if class_count < len(MULTICLASS_NAMES):
@@ -670,7 +721,7 @@ def plot_evaluation(y_true, probabilities, run_name, class_names=None):
     axis.grid(True, which="both")
     axis.legend()
     figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{run_name}_trigger_rate.png", dpi=150)
+    figure.savefig(ROOT / "plots" / f"{plot_name}_trigger_rate.png", dpi=150)
     plt.close(figure)
 
 
