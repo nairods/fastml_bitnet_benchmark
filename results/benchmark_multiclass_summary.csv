@@ -10,4 +10,4 @@ multiclass,BitNet binary,64-32-32,bitnet_64_32_32,0.72118,0.00319,0.91589,0.0003
 multiclass,BitNet binary,128-32,bitnet_128_32,0.72080,0.00197,0.91354,0.00204,custom_native_tree1,12.00,239489.0,5.00,3,3,complete
 multiclass,Bit158 sparse ternary,64-32-32,bit158_64_32_32,0.74207,0.00202,0.92915,0.00039,custom_native_tree1,13.00,117609.7,5.00,3,3,complete
 multiclass,Bit158 sparse ternary,128-32,bit158_128_32,0.74125,0.00099,0.92821,0.00053,custom_native_tree1,9.00,142488.7,5.00,3,3,complete
-multiclass,XGBoost BDT,available,xgboost_bdt,0.76592,0.00031,0.94186,0.00006,,,,,3,0,partial
+multiclass,XGBoost BDT,available,xgboost_bdt_d4_100,0.76592,0.00031,0.94186,0.00006,,,,,3,0,partial
