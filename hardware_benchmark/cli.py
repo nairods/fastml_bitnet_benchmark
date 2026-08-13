@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .artifacts import discover_configs, load_json
 from .bitnet import (
     export_hls_project,
     export_hls_project_v26_style,
@@ -30,11 +31,24 @@ def _write_json(path: Path, values):
     path.write_text(json.dumps(values, indent=2) + "\n", encoding="utf-8")
 
 
+def _load_test_arrays(run_name: str):
+    import sys
+
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from benchmark import load_dataset
+
+    config_path = discover_configs(ROOT).get(run_name)
+    if config_path is None:
+        raise FileNotFoundError(f"No run config found for {run_name} under logs/ or configs/")
+    arrays = load_dataset(load_json(config_path))
+    return arrays["x_test"], arrays["y_test"]
+
+
 def command_validate_bitnet(args):
     state_path = ROOT / "onnx" / "hardware" / f"{args.run_name}_quantized.pt"
     layers = load_quantized_layers(state_path)
-    inputs = np.load(ROOT / "data" / "synthesis" / "x_test.npy", mmap_mode="r")
-    labels = np.load(ROOT / "data" / "synthesis" / "y_test.npy", mmap_mode="r")
+    inputs, labels = _load_test_arrays(args.run_name)
     reference = np.load(
         ROOT / "data" / "synthesis" / "reference_predictions" / f"{args.run_name}.npy",
         mmap_mode="r",

@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 from pathlib import Path
 
 import h5py
@@ -17,6 +18,9 @@ def _write_result(output_dir: Path, result: dict):
 
 
 def _qkeras_bits(run_name: str) -> int:
+    match = re.search(r"(?:^|_)b(5|7|8|10|12)(?:_|$)", run_name)
+    if match:
+        return int(match.group(1))
     for bits in (5, 7, 8, 10, 12):
         if f"_b{bits}__" in run_name:
             return bits

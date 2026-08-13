@@ -13,6 +13,17 @@ def sha256(path: Path) -> str:
 
 def verify_transfer_manifest(root: Path) -> dict:
     path = root / "results" / "hardware_transfer_manifest.json"
+    if not path.exists():
+        return {
+            "manifest": str(path.relative_to(root)),
+            "checked": 0,
+            "missing": [],
+            "size_mismatch": [],
+            "checksum_mismatch": [],
+            "available": False,
+            "valid": None,
+            "reason": "Transfer manifest is not part of the public benchmark artifact.",
+        }
     manifest = json.loads(path.read_text(encoding="utf-8"))
     missing = []
     size_mismatch = []
@@ -33,13 +44,18 @@ def verify_transfer_manifest(root: Path) -> dict:
         "missing": missing,
         "size_mismatch": size_mismatch,
         "checksum_mismatch": checksum_mismatch,
+        "available": True,
         "valid": not (missing or size_mismatch or checksum_mismatch),
     }
 
 
 def refresh_transfer_manifest(root: Path) -> dict:
     path = root / "results" / "hardware_transfer_manifest.json"
-    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest = (
+        json.loads(path.read_text(encoding="utf-8"))
+        if path.exists()
+        else {"files": {}}
+    )
     existing = {root / relative for relative in manifest["files"]}
     roots = [
         root / "hardware_benchmark",

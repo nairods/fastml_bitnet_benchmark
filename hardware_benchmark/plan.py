@@ -21,8 +21,8 @@ def build_plan(root: Path) -> list[dict]:
             "io_type": target["io_type"],
             "reuse_factor": 1,
             "seed": 42,
-            "input_data": "data/synthesis/x_test.npy",
-            "labels": "data/synthesis/y_test.npy",
+            "input_data": "benchmark.load_dataset(config)['x_test']",
+            "labels": "benchmark.load_dataset(config)['y_test']",
             "reference_predictions": row["reference_predictions"],
         }
         jobs.append(

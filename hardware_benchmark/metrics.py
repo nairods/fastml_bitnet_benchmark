@@ -11,6 +11,13 @@ def as_probabilities(values: np.ndarray) -> np.ndarray:
     values = np.asarray(values, dtype=np.float64)
     if values.ndim != 2:
         raise ValueError(f"Expected rank-2 predictions, got shape {values.shape}")
+    if values.shape[1] == 1:
+        signal = (
+            values
+            if np.all(values >= -1e-7) and np.all(values <= 1.0 + 1e-7)
+            else 1.0 / (1.0 + np.exp(-values))
+        )
+        return np.concatenate([1.0 - signal, signal], axis=1)
     row_sums = values.sum(axis=1)
     is_probability = (
         np.all(values >= -1e-7)

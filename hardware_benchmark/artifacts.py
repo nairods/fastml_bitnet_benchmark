@@ -7,8 +7,6 @@ BITNET_NAMES = {
     "bitnet_topo",
     "bit158_mlp",
     "bit158_topo",
-    "binary_large",
-    "ternary_large",
 }
 
 
@@ -49,7 +47,10 @@ def model_name(config: dict) -> str:
 
 
 def readiness_rows(root: Path) -> list[dict]:
-    return load_json(root / "results" / "hardware_readiness.json")
+    path = root / "results" / "hardware_readiness.json"
+    if not path.exists():
+        return []
+    return load_json(path)
 
 
 def readiness_by_run(root: Path) -> dict[str, dict]:

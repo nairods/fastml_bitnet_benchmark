@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .artifacts import readiness_rows
+from .artifacts import discover_configs, load_json, readiness_rows
 from .bitnet import export_hls_project, load_quantized_layers, predict_exact
 from .lowering import export_pytorch_lowering_package
 from .metrics import compare_predictions
@@ -78,7 +78,16 @@ def _validate_pytorch_checkpoint(
         map_location="cpu",
         weights_only=False,
     )
-    model = build_registered_model(checkpoint["config"], 16, 5)
+    metadata = checkpoint.get("metadata", {})
+    output_dim = int(
+        metadata.get(
+            "output_dim",
+            checkpoint["config"].get("model", {}).get(
+                "output_dim", len(metadata.get("class_names", [])) or 5
+            ),
+        )
+    )
+    model = build_registered_model(checkpoint["config"], 16, output_dim)
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
     predictions = []
@@ -86,20 +95,50 @@ def _validate_pytorch_checkpoint(
         for start in range(0, len(values), 1024):
             batch = np.array(values[start : start + 1024], dtype=np.float32, copy=True)
             logits = model(torch.from_numpy(batch))
-            predictions.append(torch.softmax(logits, dim=1).numpy())
+            predictions.append(logits.numpy())
     return compare_predictions(
         np.concatenate(predictions), reference, labels
     )
 
 
+def _load_test_arrays(root: Path, config_path: Path) -> tuple[np.ndarray, np.ndarray]:
+    import sys
+
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from benchmark import load_dataset
+
+    arrays = load_dataset(load_json(config_path))
+    return arrays["x_test"], arrays["y_test"]
+
+
 def prepare_all(root: Path, output_root: Path, validation_samples: int) -> dict:
-    inputs = np.load(root / "data" / "synthesis" / "x_test.npy", mmap_mode="r")
-    labels = np.load(root / "data" / "synthesis" / "y_test.npy", mmap_mode="r")
-    limit = min(validation_samples, len(inputs))
+    rows = readiness_rows(root)
+    if not rows:
+        summary = {
+            "synthesis_run": False,
+            "validation_samples": 0,
+            "output_root": str(output_root),
+            "counts": {},
+            "records": [],
+            "reason": (
+                "No results/hardware_readiness.json file is present. "
+                "The public benchmark artifact keeps only summary CSVs; "
+                "prepare-all requires full local model and synthesis artifacts."
+            ),
+        }
+        output_root.mkdir(parents=True, exist_ok=True)
+        (output_root / "preparation.json").write_text(
+            json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+        )
+        return summary
+
+    configs = discover_configs(root)
     records = []
-    for row in readiness_rows(root):
+    for row in rows:
         run_name = row["representative_run"]
         route = row["conversion_route"]
+        config_path = configs.get(run_name)
         output_dir = output_root / run_name / "native"
         record = {
             "run_name": run_name,
@@ -110,6 +149,12 @@ def prepare_all(root: Path, output_root: Path, validation_samples: int) -> dict:
             else str(output_dir),
         }
         try:
+            if config_path is None:
+                raise FileNotFoundError(
+                    f"No run config found for {run_name} under logs/ or configs/"
+                )
+            inputs, labels = _load_test_arrays(root, config_path)
+            limit = min(validation_samples, len(inputs))
             if route == "ONNX/PyTorch":
                 record.update(
                     export_pytorch_hls(
@@ -185,7 +230,7 @@ def prepare_all(root: Path, output_root: Path, validation_samples: int) -> dict:
 
     summary = {
         "synthesis_run": False,
-        "validation_samples": limit,
+        "validation_samples": validation_samples,
         "output_root": str(output_root),
         "counts": {
             status: sum(record["status"] == status for record in records)

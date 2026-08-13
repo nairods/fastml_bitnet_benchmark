@@ -14,6 +14,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from benchmark import load_dataset
 from hardware_benchmark.bitnet import fold_cumulative_alpha, load_quantized_layers
 from hardware_benchmark.preflight import run_preflight
 from hardware_benchmark.reports import parse_csynth_xml
@@ -24,12 +25,6 @@ TMP_ROOT = Path("/tmp/bitnet_custom_v9_sigmoid")
 ACCUM_TABLE_MIN = -32768
 ACCUM_TABLE_STEP = 32
 ACCUM_TABLE_SIZE = 2048
-BINARY_CACHE = (
-    ROOT
-    / "data"
-    / "cache"
-    / "openml_42468_nall_splitseed42_classbinary_qg_vs_wzt_train0p64_val0p16_test0p2.npz"
-)
 
 
 def _cpp_values(values, formatter=str, columns=16):
@@ -100,8 +95,22 @@ def _choose_fractional_bits(integer_bits: int, target_width: int, minimum: int =
     return max(minimum, min(maximum, target_width - integer_bits))
 
 
-def _binary_calibration_ranges(folded: list[dict]) -> dict[str, list[float]]:
-    dataset = np.load(BINARY_CACHE)
+def _binary_calibration_config(run_name: str) -> dict:
+    class_mode = "binary_top_vs_qg" if "topqg" in run_name else "binary_qg_vs_wzt"
+    return {
+        "dataset": {
+            "id": 42468,
+            "cache": True,
+            "max_samples": None,
+            "sample_seed": 42,
+            "classification": {"mode": class_mode},
+        },
+        "split": {"train": 0.64, "validation": 0.16, "test": 0.2, "seed": 42},
+    }
+
+
+def _binary_calibration_ranges(folded: list[dict], run_name: str) -> dict[str, list[float]]:
+    dataset = load_dataset(_binary_calibration_config(run_name))
     splits = [dataset["x_train"], dataset["x_validation"], dataset["x_test"]]
     pre_max = [0.0 for _ in folded]
     post_max = [0.0 for _ in folded[:-1]]
@@ -118,8 +127,8 @@ def _binary_calibration_ranges(folded: list[dict]) -> dict[str, list[float]]:
     return {"pre_max": pre_max, "post_max": post_max}
 
 
-def _calibrated_type_defs(folded: list[dict]) -> dict[str, object]:
-    ranges = _binary_calibration_ranges(folded)
+def _calibrated_type_defs(folded: list[dict], run_name: str) -> dict[str, object]:
+    ranges = _binary_calibration_ranges(folded, run_name)
     hidden_defs = []
     for index in range(len(folded) - 1):
         pre_bound = max(1.0, ranges["pre_max"][index] * 1.1)
@@ -617,6 +626,7 @@ def _emit_final_logits_layer(
 
 def export_project(
     layers: list[dict],
+    run_name: str,
     output_dir: Path,
     project_name: str,
     part: str,
@@ -634,7 +644,7 @@ def export_project(
     final_scale = folded[-1]["cumulative_scale"]
     final_bias = float(np.asarray(folded[-1]["bias_folded"], dtype=np.float64)[0])
     sigmoid_table = _make_sigmoid_table(final_scale, final_bias)
-    calibrated_types = _calibrated_type_defs(folded) if variant_tag == "custom_v10_narrow" else None
+    calibrated_types = _calibrated_type_defs(folded, run_name) if variant_tag == "custom_v10_narrow" else None
 
     parameter_blocks = [
         f"static const int ACCUM_TABLE_MIN = {ACCUM_TABLE_MIN};",
@@ -958,7 +968,7 @@ def synthesize(run_name: str, part: str, clock_period: float, output_mode: str, 
     project_dir = TMP_ROOT / project_name
     if project_dir.exists():
         shutil.rmtree(project_dir)
-    metadata = export_project(layers, project_dir, project_name, part, clock_period, output_mode, variant_tag)
+    metadata = export_project(layers, run_name, project_dir, project_name, part, clock_period, output_mode, variant_tag)
 
     preflight = run_preflight(ROOT)
     if not preflight["vitis_hls"]["available"]:
