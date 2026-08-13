@@ -105,7 +105,7 @@ def pareto(rows: list[dict[str, str]]) -> list[dict[str, str]]:
 
 def short_label(model: str) -> str:
     return {
-        "Dense MLP": "Dense",
+        "Dense MLP": "Dense MLP",
         "QKeras fixed b7": "QK fixed b7",
         "QKeras binary": "QK binary",
         "QKeras ternary": "QK ternary",
@@ -116,7 +116,7 @@ def short_label(model: str) -> str:
 
 def legend_model_label(model: str) -> str:
     return {
-        "Dense MLP": "Dense",
+        "Dense MLP": "Dense MLP",
         "QKeras fixed b7": "QKeras (7-bit)",
         "HGQ": "HGQ",
         "QKeras binary": "QKeras binary",
