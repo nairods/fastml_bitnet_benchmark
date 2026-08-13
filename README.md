@@ -108,8 +108,6 @@ python -m pip install -r requirements-hgq.txt
 
 Full hardware reproduction additionally requires **hls4ml, Conifer and Vivado/Vitis HLS**.
 
-See [`REPRODUCIBILITY_REPORT.md`](REPRODUCIBILITY_REPORT.md) for detailed environment configuration, toolchain requirements and reproducibility notes.
-
 ## Reproducing the Results
 
 The figures and summary tables used in the benchmark can be regenerated directly from the committed result files:
