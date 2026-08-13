@@ -14,4 +14,3 @@ qg_vs_top,BitNet binary,128-32,topqg_bitnet_128_32,0.89723,0.00177,0.95418,0.001
 qg_vs_top,Bit158 sparse ternary,64-32-32,topqg_bit158_64_32_32,0.89900,0.00061,0.95563,0.00085,0.49838,0.01759,custom_v9_sigmoid,9.00,0.00,1.00,100334.7,1693.1,17210.3,1.33,1.00,3,3,complete
 qg_vs_top,Bit158 sparse ternary,128-32,topqg_bit158_128_32,0.89991,0.00149,0.95680,0.00078,0.50787,0.01358,custom_v9_sigmoid,8.00,0.00,1.00,111489.0,2193.7,22416.0,0.00,1.00,3,3,complete
 qg_vs_top,XGBoost BDT d4x100 (unrolled),100 trees depth 4,topqg_xgboost_bdt_d4_100,0.90322,0.00046,0.95842,0.00020,0.54208,0.00475,conifer_unrolled,4.00,0.00,1.00,74494.0,69.1,3242.7,0.00,,3,3,complete
-qg_vs_top,XGBoost BDT d4x100 (tree),100 trees depth 4,topqg_xgboost_bdt_d4_100,0.90322,0.00046,0.95842,0.00020,0.54208,0.00475,conifer_tree,229.00,3.46,230.00,19675.0,4477.4,32061.3,215.33,,3,3,complete
