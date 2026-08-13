@@ -369,7 +369,7 @@ def main() -> int:
         xerr_key="latency_ns_std",
         yerr_key="auc_std",
         xlim=(0, 120),
-        model_legend_loc="upper right",
+        model_legend_loc="lower left",
     )
     if multiclass_rows:
         plot_pareto(
