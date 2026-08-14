@@ -41,7 +41,8 @@ def main() -> int:
     if selected_backend == "bitnet":
         raise RuntimeError(
             "The published BitNet hardware rows use patched or custom HLS paths; "
-            "stock hls4ml preparation is not an equivalent replacement."
+            "use synthesize_bitnet_hls4ml_patched.py for binary BitNet. Stock "
+            "hls4ml preparation is not an equivalent replacement."
         )
 
     protocol = json.loads((ROOT / "configs" / "benchmark.json").read_text(encoding="utf-8"))

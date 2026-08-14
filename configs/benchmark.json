@@ -58,7 +58,7 @@
     "result_level": "HLS C-synthesis",
     "implementations": {
       "hls4ml_latency_rf1": "Stock hls4ml, latency strategy, reuse factor 1",
-      "hls4ml_patched_bitnet_latency_rf1": "hls4ml-generated BitNet project with architecture-specific patched kernels",
+      "hls4ml_patched_bitnet_latency_rf1": "hls4ml-generated binary BitNet project with architecture-independent patched add/subtract kernels",
       "custom_hls_bitnet_sigmoid_rf1": "Custom BitNet HLS implementation including the binary sigmoid endpoint",
       "custom_hls_bitnet_logits_rf1": "Custom BitNet HLS implementation with multiclass logits output",
       "conifer_unrolled": "Conifer fully unrolled BDT implementation"

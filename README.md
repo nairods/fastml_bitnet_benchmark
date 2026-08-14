@@ -54,8 +54,8 @@ predictions, generated HLS projects, or raw OpenML data.
 - The root `train_*` and `test_*` files, plus `torchDNN.py`, are backend
   adapters invoked by `scripts/run_benchmark.py`; they are not separate user
   workflows.
-- `hardware_benchmark/` and the two synthesis scripts contain small reusable
-  helpers for stock hls4ml projects and Conifer BDT projects.
+- `hardware_benchmark/` and the synthesis scripts contain reusable helpers for
+  stock hls4ml, patched binary BitNet, and Conifer BDT projects.
 
 ## Benchmark protocol
 
@@ -117,16 +117,18 @@ families:
 | Public label | Meaning |
 | --- | --- |
 | `hls4ml_latency_rf1` | Stock hls4ml, latency strategy, reuse factor 1 |
-| `hls4ml_patched_bitnet_latency_rf1` | hls4ml-generated BitNet project with architecture-specific patched kernels |
+| `hls4ml_patched_bitnet_latency_rf1` | hls4ml-generated binary BitNet project with architecture-independent patched add/subtract kernels |
 | `custom_hls_bitnet_sigmoid_rf1` | Custom BitNet HLS path including the binary sigmoid endpoint |
 | `custom_hls_bitnet_logits_rf1` | Custom BitNet HLS path with multiclass logits output |
 | `conifer_unrolled` | Fully unrolled Conifer BDT |
 
-This distinction is important: most published BitNet rows are not stock
-hls4ml conversions. The compact record keeps the original internal variant name
-for provenance while exposing stable, descriptive public labels in the CSVs.
-For q/g vs top, the standard BitNet-1.58 row has three metric seeds but only one
-valid sigmoid-inclusive synthesis record and is therefore marked `partial`.
+This distinction is important: the binary-task BitNet rows are patched hls4ml
+projects, while BitNet-1.58 and multiclass BitNet rows use custom kernels. Both
+binary BitNet architectures now use the same patch generator. The compact
+record keeps the original internal variant name for provenance while exposing
+stable, descriptive public labels in the CSVs. For q/g vs top, the standard
+BitNet-1.58 row has three metric seeds but only one valid sigmoid-inclusive
+synthesis record and is therefore marked `partial`.
 
 ## Results
 
@@ -163,7 +165,8 @@ For the primary standard architecture, Dense and QKeras 7-bit reach an AUC of
 about 0.9325. BitNet-1.58 reaches 0.9232, ahead of the naive binary and ternary
 QKeras models. HGQ is the lowest-LUT neural implementation, while the unrolled
 BDT is the lowest-latency point. The exact values and seed counts are in the
-CSV tables.
+CSV tables. Under the common patched hls4ml implementation, both binary BitNet
+architectures synthesize without DSPs.
 
 ## Retraining
 
@@ -212,8 +215,25 @@ python scripts/synthesize_hls4ml_project.py \
 ```
 
 Reference prediction export is required by the QKeras and HGQ conversion
-worker. The stock dense conversion does not require that export. For a trained
-BDT, reproduce the public unrolled implementation with:
+worker. The stock dense conversion does not require that export.
+
+For a trained binary BitNet run, generate and synthesize the public patched
+hls4ml implementation directly from its training checkpoint:
+
+```bash
+RUN=bitnet_128_32__seed42
+python scripts/synthesize_bitnet_hls4ml_patched.py \
+  --run-name ${RUN} --checkpoint models/${RUN}.pt
+```
+
+The script exports integer weights to ignored `data/synthesis/`, discovers
+hls4ml's generated layer/config identifiers, folds cumulative BitNet scales,
+replaces binary matrix multiplications with add/subtract kernels, and fuses the
+final sigmoid lookup. It compiles and compares 256 deterministic samples before
+C-synthesis; use `--write-only` to stop after project generation and
+validation.
+
+For a trained BDT, reproduce the public unrolled implementation with:
 
 ```bash
 RUN=xgboost_bdt_d4_100__seed42
@@ -221,12 +241,11 @@ python scripts/synthesize_xgboost_conifer.py \
   --config logs/run_configs/${RUN}.json --unroll
 ```
 
-The repository does not claim that these generic helpers reproduce the archived
-custom BitNet kernels, and `prepare_hls4ml_project.py` deliberately rejects
-BitNet runs rather than substituting a non-equivalent implementation. Those
-measurements remain inspectable in
-`data/benchmark_records.json`, including implementation boundary, tool version,
-part, clock, and original source-variant identifier.
+`prepare_hls4ml_project.py` deliberately rejects BitNet runs because the
+patched binary route above is separate from stock conversion. The archived
+custom BitNet-1.58 and multiclass measurements remain inspectable in
+`data/benchmark_records.json`, including implementation boundary, tool
+version, part, clock, and original source-variant identifier.
 
 ## Extending the benchmark
 

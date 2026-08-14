@@ -1,2 +1,3 @@
-hls4ml
-conifer
+hls4ml==1.2.0
+conifer==1.8
+onnx==1.17.0
