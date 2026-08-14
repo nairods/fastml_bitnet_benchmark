@@ -1,2 +1,5 @@
+-r requirements.txt
+scikit-learn
 tensorflow==2.13.1
 qkeras==0.9.0
+h5py

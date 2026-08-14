@@ -1,17 +1,20 @@
 PYTHON ?= python
 
-.PHONY: reproduce paper main secondary figures
+.PHONY: reproduce figures check train-primary train-secondary train-multiclass
 
-reproduce: paper
-
-paper:
-	$(PYTHON) scripts/reproduce_paper.py
-
-main:
-	$(PYTHON) scripts/run_binary_benchmark_workflow.py --class-mode binary_qg_vs_wzt --namespace binary --log-subdir binary_benchmark --seeds 42 43 44
-
-secondary:
-	$(PYTHON) scripts/run_binary_benchmark_workflow.py --class-mode binary_top_vs_qg --namespace binary_topqg --log-subdir binary_topqg_benchmark --seeds 42 43 44
+reproduce: figures
 
 figures:
 	$(PYTHON) scripts/generate_benchmark_artifacts.py
+
+check:
+	$(PYTHON) scripts/generate_benchmark_artifacts.py --check
+
+train-primary:
+	$(PYTHON) scripts/run_benchmark.py --task qg_vs_wzt
+
+train-secondary:
+	$(PYTHON) scripts/run_benchmark.py --task qg_vs_top
+
+train-multiclass:
+	$(PYTHON) scripts/run_benchmark.py --task multiclass

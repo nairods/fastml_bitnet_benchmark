@@ -1,9 +1,10 @@
-This repository keeps the small synthesis metadata and fixed split archives needed
-for reproducibility.
+This directory contains the compact inputs needed for public reproduction:
 
-Large raw OpenML caches and regenerated benchmark caches are intentionally not
-committed. They are recreated by the benchmark scripts on first run.
+- `benchmark_records.json` contains the curated per-seed metrics, selected HLS
+  C-synthesis estimates, and the seven retained training histories. The public
+  CSV tables and PNG plots are generated from this file.
+- `splits/` contains fixed train, validation, and test indices for each of the
+  three classification tasks.
 
-The public train/validation/test index arrays are stored here as
-`train_idx.npy`, `val_idx.npy`, and `test_idx.npy`. Task-specific split archives
-are stored separately under `data/splits/`.
+The OpenML dataset and processed caches are intentionally not committed. They
+are downloaded or regenerated on demand by the training workflow.

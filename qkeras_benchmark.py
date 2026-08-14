@@ -6,8 +6,6 @@ import numpy as np
 from benchmark import (
     ROOT,
     compute_metrics,
-    plot_evaluation,
-    plot_training,
     result_record,
     save_results,
     uses_binary_sigmoid,
@@ -159,7 +157,6 @@ def evaluate_qkeras(model, arrays, config, model_path, backend="qkeras"):
     )
     class_names = arrays["metadata"]["class_names"]
     metrics = compute_metrics(arrays["y_test"], probabilities, class_names)
-    plot_evaluation(arrays["y_test"], probabilities, config["run_name"], class_names)
     latency = config["evaluation"]["latency"]
     result = result_record(
         config,

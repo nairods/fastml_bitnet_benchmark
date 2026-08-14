@@ -5,7 +5,10 @@ __pycache__/
 .ruff_cache/
 logs/
 hls_projects/
-onnx/
 models/
 data/openml/
 data/cache/
+data/synthesis/
+results/*__seed*.json
+results/synthesis/
+vitis_hls.log

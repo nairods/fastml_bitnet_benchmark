@@ -1,6 +1,5 @@
 import argparse
 import json
-import re
 from pathlib import Path
 
 import h5py
@@ -17,31 +16,11 @@ def _write_result(output_dir: Path, result: dict):
     )
 
 
-def _qkeras_bits(run_name: str) -> int:
-    match = re.search(r"(?:^|_)b(5|7|8|10|12)(?:_|$)", run_name)
-    if match:
-        return int(match.group(1))
-    for bits in (5, 7, 8, 10, 12):
-        if f"_b{bits}__" in run_name:
-            return bits
-    return 6
-
-
 def _load_run_config(root: Path, run_name: str) -> dict:
-    candidates = [
-        root / "logs" / "run_configs" / f"{run_name}.json",
-        root / "logs" / "slurm" / "configs" / f"{run_name}.json",
-        root / "logs" / "slurm" / "qkeras" / "configs" / f"{run_name}.json",
-        root / "logs" / "slurm" / "hgq" / "configs" / f"{run_name}.json",
-        root / "configs" / f"{run_name}.json",
-    ]
-    for path in candidates:
-        if path.exists():
-            return json.loads(path.read_text(encoding="utf-8"))
-    return {
-        "run_name": run_name,
-        "model": {"hidden_dims": [64, 32, 32]},
-    }
+    path = root / "logs" / "run_configs" / f"{run_name}.json"
+    if not path.exists():
+        raise FileNotFoundError(f"Missing run config: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _qkeras_quantizers(config: dict, run_name: str):
@@ -49,7 +28,7 @@ def _qkeras_quantizers(config: dict, run_name: str):
 
     options = config.get("model", {}).get("qkeras", {})
     mode = options.get("quantizer", "quantized_bits")
-    bits = options.get("bits", _qkeras_bits(run_name))
+    bits = options.get("bits", 7)
     integer_bits = options.get("integer_bits", 0)
     alpha = options.get("alpha", 1)
     activation_bits = options.get("activation_bits", bits)

@@ -25,7 +25,7 @@ def load_pickle(path):
 
 
 def hardware_target(config):
-    target = config.get("target", config)
+    target = config.get("hardware", config.get("target", config))
     return {
         "part": target["part"],
         "clock_period": target.get("clock_period", target.get("clock_period_ns")),
@@ -77,7 +77,7 @@ def find_csynth_xml(output_dir: Path, project_name: str) -> Path | None:
 def main():
     parser = argparse.ArgumentParser(description="Synthesize an XGBoost BDT with Conifer.")
     parser.add_argument("--config", required=True, help="Path to the trained XGBoost run config.")
-    parser.add_argument("--hardware-config", default="configs/hardware_benchmark.json")
+    parser.add_argument("--hardware-config", default="configs/benchmark.json")
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--project-name", default=None)
     parser.add_argument("--output-dir", default=None)

@@ -1,4 +1,3 @@
-import csv
 import inspect
 import json
 import os
@@ -15,11 +14,9 @@ import numpy as np
 from sklearn.datasets import fetch_openml
 from sklearn.metrics import (
     accuracy_score,
-    average_precision_score,
     confusion_matrix,
     log_loss,
     roc_auc_score,
-    roc_curve,
 )
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -37,62 +34,10 @@ from model_registry import build_registered_model, resolve_model_name
 
 
 ROOT = Path(__file__).resolve().parent
-OUTPUT_DIRS = ("data", "models", "onnx", "plots", "logs", "results")
-PUBLIC_PLOT_BASE_NAMES = {
-    "binary_mlp_baseline_64_32_32": "dense_baseline_64_32_32",
-    "binary_mlp_topo_128_32": "dense_128_32",
-    "binary_qkeras_mlp_64_32_32_b7": "qkeras_b7_64_32_32",
-    "binary_qkeras_topo_128_32_b7": "qkeras_b7_128_32",
-    "binary_hgq_mlp_64_32_32": "hgq_64_32_32",
-    "binary_hgq_topo_128_32": "hgq_128_32",
-    "binary_qkeras_mlp_binary_64_32_32": "qkeras_binary_64_32_32",
-    "binary_qkeras_topo_binary_128_32": "qkeras_binary_128_32",
-    "binary_qkeras_mlp_ternary_64_32_32": "qkeras_ternary_64_32_32",
-    "binary_qkeras_topo_ternary_128_32": "qkeras_ternary_128_32",
-    "binary_bitnet_sigmoid_f7_fixed": "bitnet_64_32_32",
-    "binary_bitnet_f7_fixed": "bitnet_64_32_32",
-    "binary_bitnet_topo_sigmoid_f7_fixed": "bitnet_128_32",
-    "binary_bitnet_topo_f7_fixed": "bitnet_128_32",
-    "binary_bit158_sigmoid_f7_fixed": "bit158_64_32_32",
-    "binary_bit158_f7_fixed": "bit158_64_32_32",
-    "binary_bit158_64_32_32": "bit158_64_32_32",
-    "binary_bit158_topo_sigmoid_f7_fixed": "bit158_128_32",
-    "binary_bit158_topo_f7_fixed": "bit158_128_32",
-    "binary_bit158_128_32": "bit158_128_32",
-    "binary_topqg_mlp_baseline_64_32_32": "topqg_dense_baseline_64_32_32",
-    "binary_topqg_mlp_topo_128_32": "topqg_dense_baseline_128_32",
-    "binary_topqg_qkeras_mlp_64_32_32_b7": "topqg_qkeras_b7_64_32_32",
-    "binary_topqg_qkeras_topo_128_32_b7": "topqg_qkeras_b7_128_32",
-    "binary_topqg_qkeras_b7_128_32": "topqg_qkeras_b7_128_32",
-    "binary_topqg_hgq_mlp_64_32_32": "topqg_hgq_64_32_32",
-    "binary_topqg_hgq_topo_128_32": "topqg_hgq_128_32",
-    "binary_topqg_qkeras_mlp_binary_64_32_32": "topqg_qkeras_binary_64_32_32",
-    "binary_topqg_qkeras_topo_binary_128_32": "topqg_qkeras_binary_128_32",
-    "binary_topqg_qkeras_binary_128_32": "topqg_qkeras_binary_128_32",
-    "binary_topqg_qkeras_mlp_ternary_64_32_32": "topqg_qkeras_ternary_64_32_32",
-    "binary_topqg_qkeras_topo_ternary_128_32": "topqg_qkeras_ternary_128_32",
-    "binary_topqg_qkeras_ternary_128_32": "topqg_qkeras_ternary_128_32",
-    "binary_topqg_bitnet_sigmoid_f7_fixed": "topqg_bitnet_64_32_32",
-    "binary_topqg_bitnet_f7_fixed": "topqg_bitnet_64_32_32",
-    "binary_topqg_bitnet_topo_sigmoid_f7_fixed": "topqg_bitnet_128_32",
-    "binary_topqg_bitnet_topo_f7_fixed": "topqg_bitnet_128_32",
-    "binary_topqg_bit158_sigmoid_f7_fixed": "topqg_bit158_64_32_32",
-    "binary_topqg_bit158_f7_fixed": "topqg_bit158_64_32_32",
-    "binary_topqg_bit158_topo_sigmoid_f7_fixed": "topqg_bit158_128_32",
-    "binary_topqg_bit158_topo_f7_fixed": "topqg_bit158_128_32",
-}
+OUTPUT_DIRS = ("data", "models", "plots", "logs", "results")
 MULTICLASS_LABELS = ["g", "q", "w", "z", "t"]
 MULTICLASS_NAMES = ["gluon", "quark", "W", "Z", "top"]
 MULTICLASS_INDEX_BY_LABEL = {label: index for index, label in enumerate(MULTICLASS_LABELS)}
-TRIGGER_SIGNAL_INDICES = {"W": [2], "Z": [3], "top": [4], "W_Z_top": [2, 3, 4]}
-TRIGGER_BACKGROUND_INDICES = [0, 1]
-TRIGGER_SIGNAL_EFFICIENCIES = (0.5, 0.7, 0.8, 0.9, 0.95)
-TRIGGER_RATE_POINTS_KHZ = (1.0, 10.0, 100.0, 1000.0)
-
-
-def total_min_bias_rate(n_coll_bunch=2760):
-    lhc_frequency = 11245.6
-    return lhc_frequency * n_coll_bunch / 1e3
 
 
 def ensure_output_dirs():
@@ -215,53 +160,48 @@ def load_dataset(config):
 
     if use_cache and raw_path.exists() and raw_metadata_path.exists():
         raw = np.load(raw_path)
-        x, y = raw["x"], raw["y"]
+        if "raw_labels" not in raw.files:
+            raw_path.unlink()
+            raw_metadata_path.unlink()
+            return load_dataset(config)
+        x = raw["x"]
+        raw_labels = raw["raw_labels"].astype(str)
         with open(raw_metadata_path, encoding="utf-8") as handle:
             raw_metadata = json.load(handle)
     else:
         kwargs = {
             "data_id": config["dataset"]["id"],
             "data_home": str(ROOT / "data" / "openml"),
-            "as_frame": True,
+            "as_frame": False,
         }
         if "parser" in inspect.signature(fetch_openml).parameters:
             kwargs["parser"] = "auto"
         dataset = fetch_openml(**kwargs)
-        x = dataset.data.to_numpy(dtype=np.float32)
+        x = np.asarray(dataset.data, dtype=np.float32)
         raw_labels = np.asarray(dataset.target).astype(str)
-        unknown = sorted(set(raw_labels) - set(class_spec["raw_labels"]))
-        if unknown:
-            raise ValueError(f"Unexpected OpenML target labels: {unknown}")
-        drop_labels = set(class_spec.get("drop_labels", set()))
-        if drop_labels:
-            keep = np.asarray([label not in drop_labels for label in raw_labels], dtype=bool)
-            x = x[keep]
-            raw_labels = raw_labels[keep]
-        y = np.asarray([class_spec["label_map"][label] for label in raw_labels], dtype=np.int64)
         raw_metadata = {
             "dataset_id": config["dataset"]["id"],
             "dataset_name": dataset.details.get("name", "hls4ml_lhc_jets_hlf"),
             "feature_names": list(dataset.feature_names),
         }
         max_samples = config["dataset"].get("max_samples")
-        if max_samples is not None and max_samples < len(y):
+        if max_samples is not None and max_samples < len(raw_labels):
             sample_seed = int(config["dataset"].get("sample_seed", 42))
             indices, _ = train_test_split(
-                np.arange(len(y)),
+                np.arange(len(raw_labels)),
                 train_size=max_samples,
                 random_state=sample_seed,
-                stratify=y,
+                stratify=raw_labels,
             )
-            x, y = x[indices], y[indices]
+            x, raw_labels = x[indices], raw_labels[indices]
         if use_cache:
-            np.savez_compressed(raw_path, x=x, y=y)
+            np.savez_compressed(raw_path, x=x, raw_labels=raw_labels)
             with open(raw_metadata_path, "w", encoding="utf-8") as handle:
                 json.dump(raw_metadata, handle, indent=2)
 
-    if np.issubdtype(np.asarray(y).dtype, np.integer):
-        raw_labels = np.asarray(MULTICLASS_LABELS, dtype=object)[np.asarray(y)]
-    else:
-        raw_labels = np.asarray(y).astype(str)
+    unknown = sorted(set(raw_labels) - set(class_spec["raw_labels"]))
+    if unknown:
+        raise ValueError(f"Unexpected OpenML target labels: {unknown}")
     drop_labels = set(class_spec.get("drop_labels", set()))
     if drop_labels:
         keep = np.asarray([label not in drop_labels for label in raw_labels], dtype=bool)
@@ -509,81 +449,6 @@ def measure_torch_latency(model, input_dim, device, warmup, iterations):
     return (time.perf_counter() - start) * 1000.0 / iterations
 
 
-def expected_calibration_error(y_true, probabilities, bins=15):
-    predictions = probabilities.argmax(axis=1)
-    confidence = probabilities.max(axis=1)
-    correct = predictions == y_true
-    edges = np.linspace(0.0, 1.0, bins + 1)
-    error = 0.0
-    for lower, upper in zip(edges[:-1], edges[1:]):
-        selected = (confidence > lower) & (confidence <= upper)
-        if selected.any():
-            error += selected.mean() * abs(
-                correct[selected].mean() - confidence[selected].mean()
-            )
-    return float(error)
-
-
-def confidence_coverage(y_true, probabilities):
-    predictions = probabilities.argmax(axis=1)
-    confidence = probabilities.max(axis=1)
-    result = {}
-    for threshold in (0.5, 0.7, 0.8, 0.9, 0.95):
-        selected = confidence >= threshold
-        result[str(threshold)] = {
-            "coverage": float(selected.mean()),
-            "accuracy": float((predictions[selected] == y_true[selected]).mean())
-            if selected.any()
-            else None,
-        }
-    return result
-
-
-def trigger_proxy_metrics(y_true, probabilities, n_coll_bunch=2760):
-    total_rate_khz = total_min_bias_rate(n_coll_bunch)
-    selected = np.isin(
-        y_true,
-        TRIGGER_BACKGROUND_INDICES
-        + sorted({index for indices in TRIGGER_SIGNAL_INDICES.values() for index in indices}),
-    )
-    selected_y = y_true[selected]
-    selected_probabilities = probabilities[selected]
-    metrics = {
-        "definition": "q/g background proxy; not an unbiased minimum-bias sample",
-        "n_coll_bunch": n_coll_bunch,
-        "total_min_bias_rate_khz": total_rate_khz,
-        "signals": {},
-    }
-    for name, signal_indices in TRIGGER_SIGNAL_INDICES.items():
-        relevant = np.isin(selected_y, TRIGGER_BACKGROUND_INDICES + signal_indices)
-        targets = np.isin(selected_y[relevant], signal_indices).astype(np.int8)
-        scores = selected_probabilities[relevant][:, signal_indices].sum(axis=1)
-        false_positive, true_positive, thresholds = roc_curve(targets, scores)
-        efficiency_points = {}
-        for efficiency in TRIGGER_SIGNAL_EFFICIENCIES:
-            fpr = float(np.interp(efficiency, true_positive, false_positive))
-            efficiency_points[str(efficiency)] = {
-                "background_efficiency": fpr,
-                "background_rejection": (1.0 / fpr) if fpr > 0.0 else None,
-                "proxy_trigger_rate_khz": fpr * total_rate_khz,
-            }
-        rate_points = {}
-        for rate_khz in TRIGGER_RATE_POINTS_KHZ:
-            target_fpr = rate_khz / total_rate_khz
-            rate_points[str(rate_khz)] = {
-                "background_efficiency": target_fpr,
-                "signal_efficiency": float(
-                    np.interp(target_fpr, false_positive, true_positive)
-                ),
-            }
-        metrics["signals"][name] = {
-            "auc": float(roc_auc_score(targets, scores)),
-            "signal_efficiency_points": efficiency_points,
-            "rate_points_khz": rate_points,
-        }
-    return metrics
-
-
 def compute_metrics(y_true, probabilities, class_names=None):
     class_count = probabilities.shape[1]
     if class_names is None:
@@ -594,52 +459,31 @@ def compute_metrics(y_true, probabilities, class_names=None):
         name: float(roc_auc_score(binary_targets[:, index], probabilities[:, index]))
         for index, name in enumerate(class_names)
     }
-    per_class_average_precision = {
-        name: float(
-            average_precision_score(binary_targets[:, index], probabilities[:, index])
-        )
-        for index, name in enumerate(class_names)
-    }
-    trigger_proxy = (
-        trigger_proxy_metrics(y_true, probabilities)
-        if class_count == len(MULTICLASS_NAMES)
-        else None
-    )
-    return {
+    result = {
         "accuracy": float(accuracy_score(y_true, predictions)),
         "macro_auc": float(
             roc_auc_score(binary_targets, probabilities, average="macro")
         ),
         "per_class_auc": per_class_auc,
-        "macro_average_precision": float(
-            average_precision_score(binary_targets, probabilities, average="macro")
-        ),
-        "per_class_average_precision": per_class_average_precision,
         "cross_entropy": float(
             log_loss(y_true, probabilities, labels=np.arange(class_count))
         ),
-        "multiclass_brier_score": float(
-            np.mean(np.sum((probabilities - binary_targets) ** 2, axis=1))
-        ),
-        "expected_calibration_error": expected_calibration_error(
-            y_true, probabilities
-        ),
-        "confidence_coverage": confidence_coverage(y_true, probabilities),
-        "trigger_proxy": trigger_proxy,
         "confusion_matrix": confusion_matrix(
             y_true, predictions, labels=np.arange(class_count)
         ).tolist(),
     }
-
-
-def public_plot_run_name(run_name):
-    base, sep, seed = run_name.partition("__seed")
-    public_base = PUBLIC_PLOT_BASE_NAMES.get(base, base)
-    return f"{public_base}{sep}{seed}" if sep else public_base
+    if class_count == 2:
+        scores = probabilities[:, 1]
+        background = scores[np.asarray(y_true) == 0]
+        signal = scores[np.asarray(y_true) == 1]
+        threshold = np.quantile(background, 0.99, method="higher")
+        if np.mean(background >= threshold) > 0.01:
+            threshold = np.nextafter(threshold, np.inf)
+        result["signal_eff_at_1pct_fpr"] = float(np.mean(signal >= threshold))
+    return result
 
 
 def plot_training(history, run_name):
-    plot_name = public_plot_run_name(run_name)
     figure, axes = plt.subplots(1, 2, figsize=(11, 4))
     axes[0].plot(history["train_loss"], label="train")
     axes[0].plot(history["validation_loss"], label="validation")
@@ -650,78 +494,7 @@ def plot_training(history, run_name):
     axes[1].set_xlabel("epoch")
     axes[1].set_ylabel("validation accuracy")
     figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{plot_name}_training.png", dpi=150)
-    plt.close(figure)
-
-
-def plot_evaluation(y_true, probabilities, run_name, class_names=None):
-    plot_name = public_plot_run_name(run_name)
-    class_count = probabilities.shape[1]
-    if class_names is None:
-        class_names = [str(index) for index in range(class_count)]
-    predictions = probabilities.argmax(axis=1)
-    matrix = confusion_matrix(
-        y_true, predictions, labels=np.arange(class_count), normalize="true"
-    )
-    figure, axis = plt.subplots(figsize=(6, 5))
-    image = axis.imshow(matrix, vmin=0, vmax=1, cmap="Blues")
-    axis.set_xticks(range(class_count), class_names, rotation=45, ha="right")
-    axis.set_yticks(range(class_count), class_names)
-    axis.set_xlabel("predicted")
-    axis.set_ylabel("true")
-    for row in range(matrix.shape[0]):
-        for column in range(matrix.shape[1]):
-            axis.text(column, row, f"{matrix[row, column]:.2f}", ha="center")
-    figure.colorbar(image, ax=axis)
-    figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{plot_name}_confusion_matrix.png", dpi=150)
-    plt.close(figure)
-
-    binary_targets = np.eye(class_count, dtype=np.int8)[y_true]
-    figure, axis = plt.subplots(figsize=(7, 6))
-    for index, name in enumerate(class_names):
-        false_positive, true_positive, _ = roc_curve(
-            binary_targets[:, index], probabilities[:, index]
-        )
-        auc_value = roc_auc_score(binary_targets[:, index], probabilities[:, index])
-        axis.plot(true_positive, false_positive, label=f"{name}: {auc_value:.4f}")
-    axis.set_yscale("log")
-    axis.set_xlim(0, 1)
-    axis.set_ylim(1e-4, 1)
-    axis.set_xlabel("signal efficiency (true positive rate)")
-    axis.set_ylabel("background efficiency (false positive rate)")
-    axis.grid(True, which="both")
-    axis.legend()
-    figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{plot_name}_roc.png", dpi=150)
-    plt.close(figure)
-
-    if class_count < len(MULTICLASS_NAMES):
-        return
-
-    figure, axis = plt.subplots(figsize=(7, 6))
-    total_rate_khz = total_min_bias_rate()
-    for name, signal_indices in TRIGGER_SIGNAL_INDICES.items():
-        relevant = np.isin(
-            y_true, TRIGGER_BACKGROUND_INDICES + signal_indices
-        )
-        targets = np.isin(y_true[relevant], signal_indices).astype(np.int8)
-        scores = probabilities[relevant][:, signal_indices].sum(axis=1)
-        false_positive, true_positive, _ = roc_curve(targets, scores)
-        axis.plot(
-            true_positive,
-            false_positive * total_rate_khz,
-            label=name.replace("_", "+"),
-        )
-    axis.set_yscale("log")
-    axis.set_xlim(0, 1)
-    axis.set_ylim(1, total_rate_khz)
-    axis.set_xlabel("signal efficiency")
-    axis.set_ylabel("q/g proxy trigger rate [kHz]")
-    axis.grid(True, which="both")
-    axis.legend()
-    figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{plot_name}_trigger_rate.png", dpi=150)
+    figure.savefig(ROOT / "plots" / f"{run_name}_training.png", dpi=150)
     plt.close(figure)
 
 
@@ -760,42 +533,11 @@ def load_checkpoint(config, device):
     return model, checkpoint, path
 
 
-def _flatten_result(result):
-    row = {
-        "run_name": result["run_name"],
-        "base_run_name": result.get("base_run_name", result["run_name"]),
-        "backend": result["backend"],
-        "model_name": result["model_name"],
-        "seed": result["seed"],
-        "split_seed": result["split_seed"],
-        "accuracy": result["accuracy"],
-        "macro_auc": result["macro_auc"],
-        "parameter_count": result["parameter_count"],
-        "model_size_bytes": result["model_size_bytes"],
-        "cpu_latency_ms": result.get("cpu_latency_ms"),
-        "gpu_latency_ms": result.get("gpu_latency_ms"),
-    }
-    for name, value in result["per_class_auc"].items():
-        row[f"auc_{name}"] = value
-    return row
-
-
 def save_results(result):
     ensure_output_dirs()
     stem = f"{result['run_name']}_{result['backend']}"
     with open(ROOT / "results" / f"{stem}.json", "w", encoding="utf-8") as handle:
         json.dump(result, handle, indent=2)
-    row = _flatten_result(result)
-    with open(
-        ROOT / "results" / f"{stem}.csv", "w", newline="", encoding="utf-8"
-    ) as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(row))
-        writer.writeheader()
-        writer.writerow(row)
-
-    from summarize_results import rebuild_summary
-
-    rebuild_summary()
 
 
 def result_record(config, backend, metrics, parameter_count, model_path, latencies):
@@ -813,13 +555,8 @@ def result_record(config, backend, metrics, parameter_count, model_path, latenci
         "accuracy": metrics["accuracy"],
         "macro_auc": metrics["macro_auc"],
         "per_class_auc": metrics["per_class_auc"],
-        "macro_average_precision": metrics["macro_average_precision"],
-        "per_class_average_precision": metrics["per_class_average_precision"],
         "cross_entropy": metrics["cross_entropy"],
-        "multiclass_brier_score": metrics["multiclass_brier_score"],
-        "expected_calibration_error": metrics["expected_calibration_error"],
-        "confidence_coverage": metrics["confidence_coverage"],
-        "trigger_proxy": metrics["trigger_proxy"],
+        "signal_eff_at_1pct_fpr": metrics.get("signal_eff_at_1pct_fpr"),
         "confusion_matrix": metrics["confusion_matrix"],
         "parameter_count": parameter_count,
         "model_size_bytes": os.path.getsize(model_path),

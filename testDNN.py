@@ -9,7 +9,6 @@ from benchmark import (
     load_config,
     load_dataset,
     measure_torch_latency,
-    plot_evaluation,
     predict_torch,
     result_record,
     save_results,
@@ -36,7 +35,6 @@ def main():
     )
     class_names = arrays["metadata"]["class_names"]
     metrics = compute_metrics(arrays["y_test"], probabilities, class_names)
-    plot_evaluation(arrays["y_test"], probabilities, config["run_name"], class_names)
 
     latency = config["evaluation"]["latency"]
     cpu_model, _, _ = load_checkpoint(config, torch.device("cpu"))

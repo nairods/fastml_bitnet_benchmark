@@ -50,7 +50,7 @@ def synthesize(
     variant: str,
     allow_unverified_license: bool,
 ) -> dict:
-    preflight = run_preflight(ROOT)
+    preflight = run_preflight()
     vitis = preflight["vitis_hls"]
     if not vitis["available"]:
         raise RuntimeError("Vitis HLS is unavailable")
@@ -159,7 +159,17 @@ def synthesize(
         copied_rpt = result_dir / f"{run_name}_{variant}_csynth.rpt"
         shutil.copy2(rpt, copied_rpt)
 
-    binary_sigmoid = run_name.startswith("binary_")
+    run_config_path = ROOT / "logs" / "run_configs" / f"{run_name}.json"
+    run_config = (
+        json.loads(run_config_path.read_text(encoding="utf-8"))
+        if run_config_path.exists()
+        else {}
+    )
+    model_config = run_config.get("model", {})
+    binary_sigmoid = (
+        int(model_config.get("output_dim", 5)) == 1
+        and model_config.get("output_mode") == "binary_sigmoid"
+    )
     result = {
         **status,
         "tool": "Vitis HLS",

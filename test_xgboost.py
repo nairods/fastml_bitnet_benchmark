@@ -10,7 +10,6 @@ from benchmark import (
     compute_metrics,
     load_config,
     load_dataset,
-    plot_evaluation,
     result_record,
     save_results,
     set_seed,
@@ -59,7 +58,6 @@ def main():
     probabilities = predict_probabilities(model, arrays["x_test"])
     class_names = arrays["metadata"]["class_names"]
     metrics = compute_metrics(arrays["y_test"], probabilities, class_names)
-    plot_evaluation(arrays["y_test"], probabilities, config["run_name"], class_names)
 
     latency = config["evaluation"]["latency"]
     latencies = {

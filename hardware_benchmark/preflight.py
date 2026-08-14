@@ -1,13 +1,9 @@
 import importlib.metadata
-import json
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-
-from .artifacts import readiness_rows
-from .manifest import verify_transfer_manifest
 
 
 def _command_version(command, arguments, environment_root=None):
@@ -76,46 +72,13 @@ def _license_status():
     }
 
 
-def _route_status(row):
-    route = row["conversion_route"]
-    if route == "ONNX/PyTorch":
-        return {"state": "ready", "implementation": "direct_pytorch"}
-    if "BitNet" in route or "binary" in route or "ternary" in route:
-        return {
-            "state": "ready",
-            "implementation": "custom_bitnet_dynamic_quantizer",
-            "warning": "The transferred hardware ONNX is approximate; use the quantized state with the custom route.",
-        }
-    if route == "native QKeras":
-        return {
-            "state": "ready_in_hlsenv310",
-            "implementation": "qkeras_hls4ml",
-            "warning": "Use hlsenv310; the default hlsenv has an incompatible Keras import.",
-        }
-    if route == "native HGQ":
-        return {
-            "state": "ready_in_hlsenv310",
-            "implementation": "hgq_hls4ml",
-            "warning": "Restore Keras variables explicitly, calibrate min/max, then use HGQ to_proxy_model.",
-        }
-    return {
-        "state": "lowering_required",
-        "implementation": "custom_operator_package",
-        "reason": "Stock hls4ml fails at the learned feature tokenizer.",
-    }
-
-
-def run_preflight(root: Path) -> dict:
-    routes = {
-        row["representative_run"]: _route_status(row)
-        for row in readiness_rows(root)
-    }
+def run_preflight() -> dict:
     return {
         "python": sys.version.split()[0],
         "executable": sys.executable,
         "packages": {
             name: _package_version(name)
-            for name in ("hls4ml", "torch", "tensorflow", "qkeras", "HGQ", "onnx", "onnxruntime")
+            for name in ("hls4ml", "conifer", "torch", "tensorflow", "qkeras", "HGQ")
         },
         "vivado": _command_version(
             "vivado", ["-version"], os.environ.get("XILINX_VIVADO")
@@ -124,13 +87,4 @@ def run_preflight(root: Path) -> dict:
             "vitis_hls", ["-version"], os.environ.get("XILINX_VITIS")
         ),
         "license": _license_status(),
-        "manifest": verify_transfer_manifest(root),
-        "routes": routes,
     }
-
-
-def write_preflight(root: Path, output: Path) -> dict:
-    report = run_preflight(root)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    return report
