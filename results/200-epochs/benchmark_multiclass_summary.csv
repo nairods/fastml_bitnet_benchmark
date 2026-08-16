@@ -1,13 +1,13 @@
-task,model,architecture,base_run_name,accuracy_mean,accuracy_std,macro_auc_mean,macro_auc_std,selected_epoch_mean,selected_epoch_std,max_epochs,synth_variant,latency_cycles_mean,lut_mean,dsp_mean,seeds_metrics,seeds_synth,status
-multiclass,Dense MLP,64-32-32,multiclass_dense_baseline_64_32_32,0.77069,0.00012,0.94459,0.00013,182.00,11.79,200,hls4ml_latency_rf1,10.00,187738.7,3745.00,3,3,complete
-multiclass,Dense MLP,128-32,multiclass_dense_128_32,0.77009,0.00031,0.94462,0.00010,193.33,3.51,200,hls4ml_latency_rf1,7.67,274375.7,5464.00,3,3,complete
-multiclass,QKeras fixed b7,64-32-32,multiclass_qkeras_b7_64_32_32,0.76952,0.00027,0.94401,0.00007,144.67,27.06,200,hls4ml_latency_rf1,7.00,166932.7,198.33,3,3,complete
-multiclass,HGQ,64-32-32,multiclass_hgq_64_32_32,0.76262,0.00103,0.93972,0.00047,199.33,1.15,200,hls4ml_latency_rf1,7.33,19647.0,2.67,3,3,complete
-multiclass,HGQ,128-32,multiclass_hgq_128_32,0.76180,0.00062,0.93961,0.00037,195.67,4.51,200,hls4ml_latency_rf1,5.33,19661.0,2.33,3,3,complete
-multiclass,QKeras binary,64-32-32,multiclass_qkeras_binary_64_32_32,0.67959,0.01410,0.86695,0.00205,61.67,18.04,200,hls4ml_latency_rf1,11.00,58650.0,0.00,3,3,complete
-multiclass,QKeras ternary,64-32-32,multiclass_qkeras_ternary_64_32_32,0.71261,0.00168,0.89912,0.00158,35.33,23.59,200,hls4ml_latency_rf1,6.67,41524.3,0.00,3,3,complete
-multiclass,BitNet binary,64-32-32,multiclass_bitnet_64_32_32,0.72118,0.00319,0.91589,0.00030,6.33,0.58,200,hls4ml_patched_bitnet_latency_rf1,13.33,92147.7,10.00,3,3,complete
-multiclass,BitNet binary,128-32,multiclass_bitnet_128_32,0.72789,0.00171,0.91732,0.00084,6.33,1.15,200,hls4ml_patched_bitnet_latency_rf1,11.67,120597.3,10.00,3,3,complete
-multiclass,BitNet-1.58,64-32-32,multiclass_bit158_64_32_32,0.74620,0.00206,0.93006,0.00090,35.67,3.51,200,hls4ml_patched_bitnet_latency_rf1,11.33,85933.7,10.00,3,3,complete
-multiclass,BitNet-1.58,128-32,multiclass_bit158_128_32,0.74415,0.00108,0.92855,0.00054,31.33,6.66,200,hls4ml_patched_bitnet_latency_rf1,8.33,105153.0,10.00,3,3,complete
-multiclass,XGBoost BDT,100 trees depth 4,multiclass_xgboost_bdt_d4_100,0.75246,0.00010,0.93346,0.00004,,,,conifer_unrolled,3.00,376699.0,0.00,3,1,partial
+task,model,architecture,base_run_name,accuracy_mean,accuracy_std,macro_auc_mean,macro_auc_std,selected_epoch_mean,selected_epoch_std,max_epochs,synth_variant,latency_cycles_mean,lut_mean,ff_mean,ff_std,dsp_mean,dsp_std,bram18_mean,bram18_std,seeds_metrics,seeds_synth,status
+multiclass,Dense MLP,64-32-32,multiclass_dense_baseline_64_32_32,0.77069,0.00012,0.94459,0.00013,182.00,11.79,200,hls4ml_latency_rf1,10.00,187738.7,35962.7,607.4,3745.00,8.89,,,3,3,complete
+multiclass,Dense MLP,128-32,multiclass_dense_128_32,0.77009,0.00031,0.94462,0.00010,193.33,3.51,200,hls4ml_latency_rf1,7.67,274375.7,50196.0,3056.8,5464.00,59.57,,,3,3,complete
+multiclass,QKeras fixed b7,64-32-32,multiclass_qkeras_b7_64_32_32,0.76952,0.00027,0.94401,0.00007,144.67,27.06,200,hls4ml_latency_rf1,7.00,166932.7,13081.0,285.1,198.33,8.14,,,3,3,complete
+multiclass,HGQ,64-32-32,multiclass_hgq_64_32_32,0.76262,0.00103,0.93972,0.00047,199.33,1.15,200,hls4ml_latency_rf1,7.33,19647.0,1301.3,109.1,2.67,0.58,,,3,3,complete
+multiclass,HGQ,128-32,multiclass_hgq_128_32,0.76180,0.00062,0.93961,0.00037,195.67,4.51,200,hls4ml_latency_rf1,5.33,19661.0,1505.3,429.0,2.33,2.08,,,3,3,complete
+multiclass,QKeras binary,64-32-32,multiclass_qkeras_binary_64_32_32,0.67959,0.01410,0.86695,0.00205,61.67,18.04,200,hls4ml_latency_rf1,11.00,58650.0,8560.3,311.7,0.00,0.00,,,3,3,complete
+multiclass,QKeras ternary,64-32-32,multiclass_qkeras_ternary_64_32_32,0.71261,0.00168,0.89912,0.00158,35.33,23.59,200,hls4ml_latency_rf1,6.67,41524.3,5425.3,1016.9,0.00,0.00,,,3,3,complete
+multiclass,BitNet binary,64-32-32,multiclass_bitnet_64_32_32,0.72118,0.00319,0.91589,0.00030,6.33,0.58,200,hls4ml_patched_bitnet_latency_rf1,13.33,92147.7,18661.3,1697.5,10.00,0.00,,,3,3,complete
+multiclass,BitNet binary,128-32,multiclass_bitnet_128_32,0.72789,0.00171,0.91732,0.00084,6.33,1.15,200,hls4ml_patched_bitnet_latency_rf1,11.67,120597.3,23332.0,232.2,10.00,0.00,,,3,3,complete
+multiclass,BitNet-1.58,64-32-32,multiclass_bit158_64_32_32,0.74620,0.00206,0.93006,0.00090,35.67,3.51,200,hls4ml_patched_bitnet_latency_rf1,11.33,85933.7,14801.3,882.8,10.00,0.00,,,3,3,complete
+multiclass,BitNet-1.58,128-32,multiclass_bit158_128_32,0.74415,0.00108,0.92855,0.00054,31.33,6.66,200,hls4ml_patched_bitnet_latency_rf1,8.33,105153.0,16927.3,1722.0,10.00,0.00,,,3,3,complete
+multiclass,XGBoost BDT,100 trees depth 4,multiclass_xgboost_bdt_d4_100,0.75246,0.00010,0.93346,0.00004,,,,conifer_unrolled,3.00,376699.0,20923.0,0.0,0.00,0.00,0.00,0.00,3,1,partial
