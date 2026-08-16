@@ -15,8 +15,10 @@ published result in place without regenerating every dependent public artifact.
 4. Include the source record, generated CSV tables, and generated PNG plots in
    the same change when a benchmark result changes.
 
-The GitHub Actions workflow performs the final compile and artifact-integrity
-check on every pull request and push to `main`.
+The GitHub Actions workflow performs the final compile, CSV-integrity, and
+plot-inventory check on every pull request and push to `main`. It does not
+compare PNG byte streams because valid Matplotlib renderer builds can encode
+the same figure differently.
 
 ## Adding a benchmarked model
 

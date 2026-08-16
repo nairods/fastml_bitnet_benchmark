@@ -25,7 +25,7 @@ conda env create -f environment.yml
 conda activate fastml-bitnet-benchmark
 ```
 
-Regenerate and byte-check either committed profile:
+Regenerate and validate either committed profile:
 
 ```bash
 make reproduce PROFILE=20-epochs
@@ -34,6 +34,11 @@ make check PROFILE=20-epochs
 make reproduce PROFILE=200-epochs
 make check PROFILE=200-epochs
 ```
+
+`make check` compares generated CSV tables byte-for-byte and verifies the full
+generated PNG inventory. PNG byte streams can vary across valid Matplotlib,
+FreeType, and PNG renderer builds, so `make check-byte-exact` is reserved for
+the local rendering environment that produced the committed images.
 
 The generator reads one compact source record per profile:
 

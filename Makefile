@@ -1,7 +1,7 @@
 PYTHON ?= python
 PROFILE ?= 20-epochs
 
-.PHONY: reproduce reproduce-all figures check check-all collect train-primary train-secondary train-multiclass
+.PHONY: reproduce reproduce-all figures check check-all check-byte-exact check-byte-exact-all collect train-primary train-secondary train-multiclass
 
 reproduce: figures
 
@@ -13,11 +13,18 @@ figures:
 	$(PYTHON) scripts/generate_benchmark_artifacts.py --profile $(PROFILE)
 
 check:
-	$(PYTHON) scripts/generate_benchmark_artifacts.py --profile $(PROFILE) --check
+	$(PYTHON) scripts/generate_benchmark_artifacts.py --profile $(PROFILE) --check-portable
 
 check-all:
 	$(MAKE) check PROFILE=20-epochs
 	$(MAKE) check PROFILE=200-epochs
+
+check-byte-exact:
+	$(PYTHON) scripts/generate_benchmark_artifacts.py --profile $(PROFILE) --check
+
+check-byte-exact-all:
+	$(MAKE) check-byte-exact PROFILE=20-epochs
+	$(MAKE) check-byte-exact PROFILE=200-epochs
 
 collect:
 	$(PYTHON) scripts/collect_benchmark_records.py --profile $(PROFILE)

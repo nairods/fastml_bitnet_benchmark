@@ -486,7 +486,7 @@ def generate(records: dict, output_root: Path, profile: str) -> dict:
     }
 
 
-def compare_generated(generated_root: Path, profile: str) -> None:
+def compare_generated(generated_root: Path, profile: str, *, compare_png_bytes: bool) -> None:
     expected = [
         *(Path("results") / profile / name for name in TABLE_FILES),
         *(Path("plots") / profile / name for name in PARETO_FILES),
@@ -504,12 +504,15 @@ def compare_generated(generated_root: Path, profile: str) -> None:
         )
         for path in directory.glob(pattern)
     }
-    mismatches = [
-        str(path)
-        for path in expected
-        if not (ROOT / path).exists()
-        or (ROOT / path).read_bytes() != (generated_root / path).read_bytes()
-    ]
+    mismatches = []
+    for path in expected:
+        committed = ROOT / path
+        generated = generated_root / path
+        if not committed.exists() or not generated.exists():
+            mismatches.append(str(path))
+        elif compare_png_bytes or path.suffix != ".png":
+            if committed.read_bytes() != generated.read_bytes():
+                mismatches.append(str(path))
     mismatches.extend(f"unexpected: {path}" for path in sorted(actual_set - expected_set))
     if mismatches:
         raise RuntimeError("Committed artifacts differ from generated output:\n" + "\n".join(mismatches))
@@ -521,18 +524,32 @@ def main() -> int:
     parser.add_argument("--profile", choices=("20-epochs", "200-epochs"), default="20-epochs")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--output-root", type=Path, default=ROOT)
-    parser.add_argument("--check", action="store_true", help="Verify committed outputs without modifying them.")
+    checks = parser.add_mutually_exclusive_group()
+    checks.add_argument(
+        "--check",
+        action="store_true",
+        help="Verify committed outputs byte-for-byte without modifying them.",
+    )
+    checks.add_argument(
+        "--check-portable",
+        action="store_true",
+        help="Verify CSV bytes and generated PNG inventory without renderer-specific PNG byte checks.",
+    )
     args = parser.parse_args()
 
     source = args.source or ROOT / "data" / args.profile / "benchmark_records.json"
     records = json.loads(source.read_text(encoding="utf-8"))
     protocol = json.loads(args.config.read_text(encoding="utf-8"))
     validate_source(records, protocol, args.profile)
-    if args.check:
+    if args.check or args.check_portable:
         with tempfile.TemporaryDirectory(prefix="fastml-benchmark-") as directory:
             generated_root = Path(directory)
             summary = generate(records, generated_root, args.profile)
-            compare_generated(generated_root, args.profile)
+            compare_generated(
+                generated_root,
+                args.profile,
+                compare_png_bytes=args.check,
+            )
     else:
         summary = generate(records, args.output_root, args.profile)
     print(json.dumps({"status": "ok", **summary}, indent=2))
