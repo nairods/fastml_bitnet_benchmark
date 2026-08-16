@@ -221,7 +221,7 @@ progress.
 - [`scripts/run_synthesis.py`](scripts/run_synthesis.py) dispatches one selected
   checkpoint through its declared hardware implementation.
 - [`scripts/generate_benchmark_artifacts.py`](scripts/generate_benchmark_artifacts.py)
-  is the only public table and plotting implementation.
+  is the public table and plotting implementation.
 - [`benchmark.py`](benchmark.py) owns task loading, split/scaler handling,
   PyTorch training, checkpoint selection, and metrics.
 - [`model_registry.py`](model_registry.py) contains the published PyTorch model
