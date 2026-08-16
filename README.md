@@ -235,7 +235,8 @@ To extend the benchmark, add the model metadata and fixed hyperparameters to
 same profile/tasks/seeds, synthesize the selected checkpoint, then run the
 collector and generator. Their validation prevents an undeclared model,
 architecture, seed set, implementation label, or training profile from entering
-the public tables silently.
+the public tables silently. The complete contribution and artifact-update
+contract is in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 

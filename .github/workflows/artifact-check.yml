@@ -1,0 +1,42 @@
+name: Artifact check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  check-committed-artifacts:
+    name: Check generated benchmark artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create artifact environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: fastml-bitnet-benchmark
+          environment-file: environment.yml
+          python-version: "3.10"
+          miniforge-version: latest
+          use-mamba: true
+
+      - name: Check Python sources compile
+        shell: bash -el {0}
+        run: |
+          python -m py_compile \
+            scripts/generate_benchmark_artifacts.py \
+            scripts/collect_benchmark_records.py \
+            scripts/run_benchmark.py \
+            scripts/run_synthesis.py
+
+      - name: Verify committed tables and plots
+        shell: bash -el {0}
+        run: make check-all
