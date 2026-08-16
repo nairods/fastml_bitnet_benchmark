@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and synthesize the patched hls4ml binary BitNet implementation."""
+"""Generate and synthesize patched hls4ml BitNet and BitNet-1.58 projects."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from hardware_benchmark.bitnet import load_quantized_layers, predict_folded
+from hardware_benchmark.bitnet import load_quantized_layers, predict_folded, predict_folded_logits
 from hardware_benchmark.preflight import run_preflight
 from hardware_benchmark.reports import parse_csynth_xml
 
@@ -82,9 +82,11 @@ PatchedBitDenseProducts:
             if (weight > 0) {
                 products[index] =
                     static_cast<typename CONFIG_T::mult_t>(data[input_index]);
-            } else {
+            } else if (weight < 0) {
                 products[index] =
                     static_cast<typename CONFIG_T::mult_t>(-data[input_index]);
+            } else {
+                products[index] = 0;
             }
         }
     }
@@ -136,7 +138,7 @@ PatchedBitDenseSigmoidInputs:
             typename CONFIG_T::weight_t weight = weights[index];
             if (weight > 0) {
                 accumulators[output_index] += value;
-            } else {
+            } else if (weight < 0) {
                 accumulators[output_index] -= value;
             }
         }
@@ -154,6 +156,50 @@ PatchedBitDenseSigmoidResults:
         }
         res[output_index] =
             static_cast<res_T>(patched_accum_sigmoid_table[index]);
+    }
+}
+
+template <class data_T, class res_T, typename CONFIG_T>
+void patched_bitdense_logits(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::alpha_bias_t biases[CONFIG_T::n_out]
+) {
+    typename CONFIG_T::accum_t accumulators[CONFIG_T::n_out];
+
+    #pragma HLS function_instantiate variable=weights,biases
+    #pragma HLS PIPELINE II=CONFIG_T::reuse_factor
+    #pragma HLS ARRAY_PARTITION variable=biases complete
+    #pragma HLS ARRAY_PARTITION variable=accumulators complete
+
+PatchedBitDenseLogitsReset:
+    for (int output_index = 0; output_index < CONFIG_T::n_out; output_index++) {
+        accumulators[output_index] =
+            static_cast<typename CONFIG_T::accum_t>(biases[output_index]);
+    }
+
+PatchedBitDenseLogitsInputs:
+    for (int input_index = 0; input_index < CONFIG_T::n_in; input_index++) {
+        data_T value = data[input_index];
+    PatchedBitDenseLogitsOutputs:
+        for (int output_index = 0; output_index < CONFIG_T::n_out; output_index++) {
+            int index = input_index * CONFIG_T::n_out + output_index;
+            typename CONFIG_T::weight_t weight = weights[index];
+            if (weight > 0) {
+                accumulators[output_index] += value;
+            } else if (weight < 0) {
+                accumulators[output_index] -= value;
+            }
+        }
+    }
+
+PatchedBitDenseLogitsResults:
+    for (int output_index = 0; output_index < CONFIG_T::n_out; output_index++) {
+        res[output_index] = static_cast<res_T>(
+            accumulators[output_index]
+            * static_cast<typename CONFIG_T::alpha_bias_t>(CONFIG_T::final_scale)
+        );
     }
 }
 
@@ -180,7 +226,7 @@ def _precision(values: tuple[str, ...], index: int) -> str:
     return values[min(index, len(values) - 1)]
 
 
-def build_hls4ml_onnx(layers: list[dict], output_path: Path) -> None:
+def build_hls4ml_onnx(layers: list[dict], output_path: Path, binary_sigmoid: bool) -> None:
     import onnx
     from onnx import TensorProto, helper
 
@@ -270,12 +316,17 @@ def build_hls4ml_onnx(layers: list[dict], output_path: Path) -> None:
                 helper.make_node("Relu", [preactivation], [previous], name=f"Relu_{index}")
             )
 
-    nodes.append(
-        helper.make_node("Sigmoid", [previous], ["probability"], name="Sigmoid_0")
-    )
-    output = helper.make_tensor_value_info(
-        "probability", TensorProto.FLOAT, [None, 1]
-    )
+    if binary_sigmoid:
+        nodes.append(
+            helper.make_node("Sigmoid", [previous], ["probability"], name="Sigmoid_0")
+        )
+        output = helper.make_tensor_value_info(
+            "probability", TensorProto.FLOAT, [None, 1]
+        )
+    else:
+        output = helper.make_tensor_value_info(
+            previous, TensorProto.FLOAT, [None, int(layers[-1]["weight"].shape[0])]
+        )
     graph = helper.make_graph(
         nodes,
         "PatchedBinaryBitNet",
@@ -294,7 +345,7 @@ def build_hls4ml_onnx(layers: list[dict], output_path: Path) -> None:
     onnx.save(model, output_path)
 
 
-def make_hls_config(model, layer_count: int) -> dict:
+def make_hls_config(model, layer_count: int, binary_sigmoid: bool) -> dict:
     from hls4ml.utils.config import config_from_onnx_model
 
     config = config_from_onnx_model(
@@ -304,9 +355,12 @@ def make_hls_config(model, layer_count: int) -> dict:
         default_precision="fixed<16,6>",
     )
     config["Model"]["ReuseFactor"] = 1
+    config["Model"]["Strategy"] = "Latency"
     for layer in config["LayerName"].values():
         layer["Trace"] = True
         layer["ReuseFactor"] = 1
+        if "Strategy" in layer:
+            layer["Strategy"] = "Latency"
 
     for index in range(layer_count):
         precision = config["LayerName"][f"MatMul_{index}"].setdefault("Precision", {})
@@ -325,16 +379,19 @@ def make_hls_config(model, layer_count: int) -> dict:
             )
             relu["Precision"]["table"] = "ap_fixed<18,8>"
 
-    sigmoid = config["LayerName"]["Sigmoid_0"]
-    sigmoid["TableSize"] = 1024
-    sigmoid.setdefault("Precision", {})["result"] = (
-        "ap_ufixed<8,0,AP_RND,AP_SAT>"
-    )
-    sigmoid["Precision"]["table"] = "ap_fixed<18,8>"
+    if binary_sigmoid:
+        sigmoid = config["LayerName"]["Sigmoid_0"]
+        sigmoid["TableSize"] = 1024
+        sigmoid.setdefault("Precision", {})["result"] = (
+            "ap_ufixed<8,0,AP_RND,AP_SAT>"
+        )
+        sigmoid["Precision"]["table"] = "ap_fixed<18,8>"
     return config
 
 
-def _parse_generated_calls(source: str, layer_count: int) -> tuple[list[dict], dict]:
+def _parse_generated_calls(
+    source: str, layer_count: int, binary_sigmoid: bool
+) -> tuple[list[dict], dict | None]:
     dense = {int(match["index"]): match.groupdict() for match in DENSE_CALL.finditer(source)}
     normalize = {
         int(match["index"]): match.groupdict()
@@ -342,13 +399,18 @@ def _parse_generated_calls(source: str, layer_count: int) -> tuple[list[dict], d
     }
     sigmoid_match = SIGMOID_CALL.search(source)
     expected = set(range(layer_count))
-    if set(dense) != expected or set(normalize) != expected or sigmoid_match is None:
+    if (
+        set(dense) != expected
+        or set(normalize) != expected
+        or (binary_sigmoid and sigmoid_match is None)
+        or (not binary_sigmoid and sigmoid_match is not None)
+    ):
         raise RuntimeError(
             "Generated hls4ml call structure did not match the expected "
             "Dense/normalization/Sigmoid graph"
         )
     stages = [{"dense": dense[index], "normalize": normalize[index]} for index in range(layer_count)]
-    return stages, sigmoid_match.groupdict()
+    return stages, sigmoid_match.groupdict() if sigmoid_match else None
 
 
 def _parse_weight_values(path: Path) -> np.ndarray:
@@ -394,9 +456,10 @@ def _format_hls_array(values: np.ndarray, values_per_line: int = 8) -> str:
 def _patch_parameters(
     project_dir: Path,
     stages: list[dict],
-    table: np.ndarray,
-    table_minimum: int,
-    table_step: int,
+    final_scale: float,
+    table: np.ndarray | None,
+    table_minimum: int | None,
+    table_step: int | None,
 ) -> None:
     parameters_path = project_dir / "firmware" / "parameters.h"
     text = parameters_path.read_text(encoding="utf-8")
@@ -417,21 +480,36 @@ def _patch_parameters(
         fields = (
             f"\n    typedef {_precision(MULT_PRECISIONS, index)} mult_t;"
             "\n    typedef model_default_t alpha_bias_t;"
-            f"\n    static const int accum_table_min = {table_minimum};"
-            f"\n    static const int accum_table_step = {table_step};"
-            f"\n    static const int accum_table_size = {ACCUM_TABLE_SIZE};"
+            f"\n    static constexpr double final_scale = {final_scale:.17g};"
         )
+        if table is not None:
+            fields += (
+                f"\n    static const int accum_table_min = {table_minimum};"
+                f"\n    static const int accum_table_step = {table_step};"
+                f"\n    static const int accum_table_size = {ACCUM_TABLE_SIZE};"
+            )
         text = text[:insert_at] + fields + text[insert_at:]
 
-    table_declaration = (
-        f"static const result_t patched_accum_sigmoid_table[{ACCUM_TABLE_SIZE}] = {{\n"
-        f"{_format_hls_array(table)}\n"
-        "};"
-    )
-    table_marker = "// hls-bitdense insert accumulator sigmoid table"
-    if table_marker not in text:
-        raise RuntimeError(f"Missing sigmoid table marker in {parameters_path}")
-    text = text.replace(table_marker, table_declaration + "\n\n" + table_marker, 1)
+    if table is not None:
+        table_declaration = (
+            f"static const result_t patched_accum_sigmoid_table[{ACCUM_TABLE_SIZE}] = {{\n"
+            f"{_format_hls_array(table)}\n"
+            "};"
+        )
+        table_marker = "// hls-bitdense insert accumulator sigmoid table"
+        if table_marker not in text:
+            raise RuntimeError(f"Missing sigmoid table marker in {parameters_path}")
+        text = text.replace(table_marker, table_declaration + "\n\n" + table_marker, 1)
+    else:
+        table_marker = "// hls-bitdense insert accumulator sigmoid table"
+        if table_marker not in text:
+            raise RuntimeError(f"Missing sigmoid table marker in {parameters_path}")
+        text = text.replace(
+            table_marker,
+            "static const result_t patched_accum_sigmoid_table[1] = {0};\n\n"
+            + table_marker,
+            1,
+        )
     parameters_path.write_text(text, encoding="utf-8")
 
 
@@ -488,7 +566,7 @@ def _guard_call(call: str) -> str:
 
 
 def _patch_network(
-    project_dir: Path, stages: list[dict], sigmoid: dict
+    project_dir: Path, stages: list[dict], sigmoid: dict | None
 ) -> None:
     source_path = project_dir / "firmware" / "myproject.cpp"
     text = source_path.read_text(encoding="utf-8")
@@ -513,46 +591,60 @@ def _patch_network(
                 f'{dense["input_type"]}, {normalize["output_type"]}, {dense["config"]}>'
                 f'({dense["input_var"]}, {normalize["output_var"]}, '
                 f'{dense["weight"]}, {normalize["bias"]}); '
-                f'// fused binary Dense_MatMul_{index} + bn_Add_{index}'
+                f'// fused BitNet Dense_MatMul_{index} + bn_Add_{index}'
             )
-        else:
+        elif sigmoid is not None:
             replacement = _guard_call(normalize_match.group(0))
+        else:
+            replacement = (
+                f'{normalize["indent"]}nnet::patched_bitdense_logits<'
+                f'{dense["input_type"]}, {normalize["output_type"]}, {dense["config"]}>'
+                f'({dense["input_var"]}, {normalize["output_var"]}, '
+                f'{dense["weight"]}, {normalize["bias"]}); '
+                f'// fused BitNet logits Dense_MatMul_{index} + bn_Add_{index}'
+            )
         text = (
             text[: normalize_match.start()]
             + replacement
             + text[normalize_match.end() :]
         )
 
-    sigmoid_match = SIGMOID_CALL.search(text)
-    if sigmoid_match is None:
-        raise RuntimeError("Could not find generated sigmoid call after dense patching")
-    final_dense = stages[-1]["dense"]
-    replacement = (
-        f'{sigmoid["indent"]}nnet::patched_bitdense_accum_sigmoid<'
-        f'{final_dense["input_type"]}, {sigmoid["output_type"]}, '
-        f'{final_dense["config"]}, {sigmoid["config"]}>'
-        f'({final_dense["input_var"]}, {sigmoid["output_var"]}, '
-        f'{final_dense["weight"]}); '
-        "// fused final binary Dense + accumulator-table Sigmoid"
-    )
-    text = text[: sigmoid_match.start()] + replacement + text[sigmoid_match.end() :]
+    if sigmoid is not None:
+        sigmoid_match = SIGMOID_CALL.search(text)
+        if sigmoid_match is None:
+            raise RuntimeError("Could not find generated sigmoid call after dense patching")
+        final_dense = stages[-1]["dense"]
+        replacement = (
+            f'{sigmoid["indent"]}nnet::patched_bitdense_accum_sigmoid<'
+            f'{final_dense["input_type"]}, {sigmoid["output_type"]}, '
+            f'{final_dense["config"]}, {sigmoid["config"]}>'
+            f'({final_dense["input_var"]}, {sigmoid["output_var"]}, '
+            f'{final_dense["weight"]}); '
+            "// fused final BitNet Dense + accumulator-table Sigmoid"
+        )
+        text = text[: sigmoid_match.start()] + replacement + text[sigmoid_match.end() :]
     source_path.write_text(text, encoding="utf-8")
 
 
 def patch_project(project_dir: Path, layers: list[dict]) -> dict:
     source = (project_dir / "firmware" / "myproject.cpp").read_text(encoding="utf-8")
-    stages, sigmoid = _parse_generated_calls(source, len(layers))
+    binary_sigmoid = int(layers[-1]["weight"].shape[0]) == 1
+    stages, sigmoid = _parse_generated_calls(source, len(layers), binary_sigmoid)
     final_scale = _patch_cumulative_biases(project_dir, layers, stages)
-    table_minimum, table_step = _accumulator_table_spec(final_scale)
-    table = _make_sigmoid_table(
-        final_scale,
-        float(layers[-1]["bias"][0]),
-        table_minimum,
-        table_step,
-    )
+    table_minimum = table_step = None
+    table = None
+    if binary_sigmoid:
+        table_minimum, table_step = _accumulator_table_spec(final_scale)
+        table = _make_sigmoid_table(
+            final_scale,
+            float(layers[-1]["bias"][0]),
+            table_minimum,
+            table_step,
+        )
     _patch_parameters(
         project_dir,
         stages,
+        final_scale,
         table,
         table_minimum,
         table_step,
@@ -569,14 +661,19 @@ def patch_project(project_dir: Path, layers: list[dict]) -> dict:
             stage["normalize"]["config"] for stage in stages
         ],
         "final_cumulative_scale": final_scale,
-        "final_bias": float(layers[-1]["bias"][0]),
-        "accumulator_table": {
+        "output_boundary": "binary_sigmoid" if binary_sigmoid else "multiclass_logits",
+        "weight_values": sorted(
+            {int(value) for layer in layers for value in np.unique(layer["weight"])}
+        ),
+    }
+    if binary_sigmoid:
+        metadata["final_bias"] = float(layers[-1]["bias"][0])
+        metadata["accumulator_table"] = {
             "minimum": table_minimum,
             "step": table_step,
             "size": ACCUM_TABLE_SIZE,
             "target_logit_step": TARGET_SIGMOID_LOGIT_STEP,
-        },
-    }
+        }
     (project_dir / "patched_bitnet_metadata.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
     )
@@ -588,7 +685,12 @@ def _validate_hls_model(hls_model, layers: list[dict], samples: int) -> dict:
     values = rng.normal(size=(samples, layers[0]["weight"].shape[1])).astype(
         np.float32
     )
-    expected = predict_folded(layers, values).reshape(-1)
+    binary_sigmoid = int(layers[-1]["weight"].shape[0]) == 1
+    expected = (
+        predict_folded(layers, values)
+        if binary_sigmoid
+        else predict_folded_logits(layers, values)
+    ).reshape(-1)
     # ModelGraph.compile() rewrites generated sources and would discard the patch.
     hls_model._compile()
     observed = np.asarray(hls_model.predict(values)).reshape(-1)
@@ -603,7 +705,10 @@ def _validate_hls_model(hls_model, layers: list[dict], samples: int) -> dict:
         "worst_expected": float(expected[difference.argmax()]),
         "worst_observed": float(observed[difference.argmax()]),
     }
-    if not result["finite"] or result["maximum_absolute_error"] > 0.05:
+    tolerance = 0.05 if binary_sigmoid else 0.1
+    result["tolerance"] = tolerance
+    result["output_boundary"] = "binary_sigmoid" if binary_sigmoid else "multiclass_logits"
+    if not result["finite"] or result["maximum_absolute_error"] > tolerance:
         raise RuntimeError(f"Patched hls4ml validation failed: {result}")
     return result
 
@@ -617,7 +722,14 @@ def export_quantized_checkpoint(checkpoint_path: Path, output_path: Path) -> Pat
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     metadata = checkpoint["metadata"]
     input_dim = len(metadata["feature_names"])
-    output_dim = int(metadata.get("output_dim", 1))
+    output_dim = int(
+        metadata.get(
+            "output_dim",
+            checkpoint.get("config", {}).get("model", {}).get(
+                "output_dim", len(metadata.get("class_names", [])) or 1
+            ),
+        )
+    )
     model = build_registered_model(checkpoint["config"], input_dim, output_dim)
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
@@ -648,22 +760,20 @@ def write_project(
     )
 
     layers = load_quantized_layers(quantized_state)
-    if layers[-1]["weight"].shape[0] != 1:
-        raise ValueError("The patched sigmoid implementation requires one output")
-    if any(not np.all(np.isin(layer["weight"], (-1, 1))) for layer in layers):
+    if any(not np.all(np.isin(layer["weight"], (-1, 0, 1))) for layer in layers):
         raise ValueError(
-            "This implementation is for binary BitNet weights only; "
-            "ternary layers require a sparse kernel"
+            "Patched BitNet weights must be binary {-1, +1} or ternary {-1, 0, +1}"
         )
+    binary_sigmoid = int(layers[-1]["weight"].shape[0]) == 1
     if output_dir.exists() and any(output_dir.iterdir()):
         raise FileExistsError(f"Output directory is not empty: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     onnx_path = output_dir / f"{run_name}_hls4ml_input.onnx"
-    build_hls4ml_onnx(layers, onnx_path)
+    build_hls4ml_onnx(layers, onnx_path, binary_sigmoid)
     model = onnx.load(onnx_path)
     parsed_layers, input_layers, output_layers = parse_onnx_model(model)
-    config = make_hls_config(model, len(layers))
+    config = make_hls_config(model, len(layers), binary_sigmoid)
     hls_model = convert_from_onnx_model(
         model,
         hls_config=config,
@@ -708,6 +818,7 @@ def synthesize(
     clock_period: float,
     output_dir: Path,
     validation_samples: int,
+    profile: str,
     allow_unverified_license: bool,
 ) -> dict:
     summary = write_project(
@@ -734,10 +845,30 @@ def synthesize(
         + os.pathsep
         + environment.get("PATH", "")
     )
+    synthesis_tcl = output_dir / "csynth_patched.tcl"
+    synthesis_tcl.write_text(
+        "\n".join(
+            [
+                "open_project -reset myproject_prj",
+                "set_top myproject",
+                'add_files firmware/myproject.cpp -cflags "-std=c++0x"',
+                'open_solution -reset "solution1"',
+                "config_compile -name_max_length 80",
+                "config_schedule -enable_dsp_full_reg=false",
+                f'set_part "{part}"',
+                f"create_clock -period {clock_period} -name default",
+                "set_clock_uncertainty 12.5% default",
+                "csynth_design",
+                "exit",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
     log_path = output_dir / "synthesis.log"
     with log_path.open("w", encoding="utf-8") as log:
         completed = subprocess.run(
-            [hls["path"], "-f", "build_prj.tcl"],
+            [hls["path"], "-f", synthesis_tcl.name],
             cwd=output_dir,
             env=environment,
             stdout=log,
@@ -752,7 +883,7 @@ def synthesize(
     )
     xml = report_dir / "myproject_csynth.xml"
     report = parse_csynth_xml(xml)
-    result_dir = ROOT / "results" / "synthesis" / f"{run_name}_{IMPLEMENTATION}"
+    result_dir = ROOT / "results" / profile / "synthesis" / f"{run_name}_{IMPLEMENTATION}"
     result_dir.mkdir(parents=True, exist_ok=True)
     copied_xml = result_dir / f"{run_name}_{IMPLEMENTATION}_csynth.xml"
     shutil.copy2(xml, copied_xml)
@@ -781,7 +912,11 @@ def synthesize(
         "uram": report.get("uram"),
         "synthesis_status": "success",
         "place_and_route_status": "not_run",
-        "implementation_boundary": "binary sigmoid output; no softmax",
+        "implementation_boundary": (
+            "binary sigmoid output; no softmax"
+            if summary["patch"]["output_boundary"] == "binary_sigmoid"
+            else "multiclass logits output; no softmax"
+        ),
         "generation": summary,
         "report_files": {
             "xml": str(copied_xml.relative_to(ROOT)),
@@ -804,6 +939,7 @@ def main() -> None:
     parser.add_argument("--part", default="xcvu13p-flga2577-2-e")
     parser.add_argument("--clock-period", type=float, default=5.0)
     parser.add_argument("--validation-samples", type=int, default=256)
+    parser.add_argument("--profile", choices=("20-epochs", "200-epochs"), required=True)
     parser.add_argument("--write-only", action="store_true")
     parser.add_argument("--allow-unverified-license", action="store_true")
     args = parser.parse_args()
@@ -811,7 +947,7 @@ def main() -> None:
     output_dir = (
         args.output_dir.resolve()
         if args.output_dir
-        else ROOT / "hls_projects" / args.run_name / IMPLEMENTATION
+        else ROOT / "hls_projects" / args.profile / args.run_name / IMPLEMENTATION
     )
     quantized_state = (
         args.quantized_state.resolve()
@@ -820,6 +956,7 @@ def main() -> None:
             args.checkpoint.resolve(),
             ROOT
             / "data"
+            / args.profile
             / "synthesis"
             / "quantized"
             / f"{args.run_name}.pt",
@@ -835,6 +972,7 @@ def main() -> None:
         "validation_samples": args.validation_samples,
     }
     if not args.write_only:
+        keywords["profile"] = args.profile
         keywords["allow_unverified_license"] = args.allow_unverified_license
     print(json.dumps(operation(**keywords), indent=2))
 

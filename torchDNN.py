@@ -3,6 +3,7 @@ import json
 
 from benchmark import (
     ROOT,
+    artifact_path,
     build_model,
     ensure_output_dirs,
     load_config,
@@ -21,16 +22,16 @@ def main():
     args = parser.parse_args()
 
     config = load_config(args.config)
-    ensure_output_dirs()
-    set_seed(config["seed"])
+    ensure_output_dirs(config)
+    set_seed(config["seed"], config["training"].get("num_threads", 16))
     arrays = load_dataset(config)
     device = select_device(config["training"].get("device", "auto"))
     model = build_model(config, arrays["x_train"].shape[1]).to(device)
     history = train_model(model, arrays, config, device)
     model_path = save_checkpoint(model, config, arrays["metadata"], history)
-    plot_training(history, config["run_name"])
+    plot_training(history, config["run_name"], config)
     with open(
-        ROOT / "logs" / f"{config['run_name']}_history.json",
+        artifact_path(config, "logs", f"{config['run_name']}_history.json"),
         "w",
         encoding="utf-8",
     ) as handle:

@@ -40,9 +40,26 @@ MULTICLASS_NAMES = ["gluon", "quark", "W", "Z", "top"]
 MULTICLASS_INDEX_BY_LABEL = {label: index for index, label in enumerate(MULTICLASS_LABELS)}
 
 
-def ensure_output_dirs():
+def artifact_profile(config):
+    profile = config.get("benchmark_profile") if config else None
+    if profile is not None and (not isinstance(profile, str) or not profile or "/" in profile or "\\" in profile):
+        raise ValueError(f"Invalid benchmark_profile: {profile!r}")
+    return profile
+
+
+def artifact_dir(config, category):
+    path = ROOT / category
+    profile = artifact_profile(config)
+    return path / profile if profile else path
+
+
+def artifact_path(config, category, filename):
+    return artifact_dir(config, category) / filename
+
+
+def ensure_output_dirs(config=None):
     for name in OUTPUT_DIRS:
-        (ROOT / name).mkdir(parents=True, exist_ok=True)
+        artifact_dir(config, name).mkdir(parents=True, exist_ok=True)
     (ROOT / "data" / "cache").mkdir(parents=True, exist_ok=True)
     (ROOT / "data" / "splits").mkdir(parents=True, exist_ok=True)
 
@@ -54,16 +71,19 @@ def load_config(path):
     return config
 
 
-def set_seed(seed):
+def set_seed(seed, thread_count=None):
     random.seed(seed)
     np.random.seed(seed)
     if torch is None:
         return
     torch.manual_seed(seed)
-    thread_count = int(
-        os.environ.get("SLURM_CPUS_PER_TASK", os.environ.get("OMP_NUM_THREADS", 0))
-        or 0
-    )
+    if thread_count is None:
+        thread_count = int(
+            os.environ.get("SLURM_CPUS_PER_TASK", os.environ.get("OMP_NUM_THREADS", 0))
+            or 0
+        )
+    else:
+        thread_count = int(thread_count)
     if thread_count > 0:
         torch.set_num_threads(thread_count)
         torch.set_num_interop_threads(max(1, min(thread_count, 4)))
@@ -331,11 +351,15 @@ def count_parameters(model):
 
 def train_model(model, arrays, config, device):
     training = config["training"]
+    if training.get("optimizer", "adam") != "adam":
+        raise ValueError("PyTorch benchmark profiles require the Adam optimizer")
+    if training.get("schedule", "constant") != "constant":
+        raise ValueError("PyTorch benchmark profiles currently support only a constant learning rate")
     train_loader = make_loader(
         arrays["x_train"],
         arrays["y_train"],
         training["batch_size"],
-        True,
+        bool(training.get("shuffle", True)),
         config["seed"],
     )
     validation_loader = make_loader(
@@ -411,6 +435,9 @@ def train_model(model, arrays, config, device):
             }
 
     model.load_state_dict(best_state)
+    history["selected_epoch"] = int(np.argmin(history["validation_loss"])) + 1
+    history["selection_metric"] = "validation_loss"
+    history["max_epochs"] = int(training["epochs"])
     return history
 
 
@@ -483,7 +510,7 @@ def compute_metrics(y_true, probabilities, class_names=None):
     return result
 
 
-def plot_training(history, run_name):
+def plot_training(history, run_name, config=None):
     figure, axes = plt.subplots(1, 2, figsize=(11, 4))
     axes[0].plot(history["train_loss"], label="train")
     axes[0].plot(history["validation_loss"], label="validation")
@@ -494,12 +521,15 @@ def plot_training(history, run_name):
     axes[1].set_xlabel("epoch")
     axes[1].set_ylabel("validation accuracy")
     figure.tight_layout()
-    figure.savefig(ROOT / "plots" / f"{run_name}_training.png", dpi=150)
+    output = artifact_path(config, "plots", f"{run_name}_training.png")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=150)
     plt.close(figure)
 
 
 def save_checkpoint(model, config, metadata, history):
-    path = ROOT / "models" / f"{config['run_name']}.pt"
+    path = artifact_path(config, "models", f"{config['run_name']}.pt")
+    path.parent.mkdir(parents=True, exist_ok=True)
     saved_metadata = {
         **metadata,
         "output_dim": int(config.get("model", {}).get("output_dim", 1 if uses_binary_sigmoid(config) else len(metadata["class_names"]))),
@@ -518,7 +548,7 @@ def save_checkpoint(model, config, metadata, history):
 
 
 def load_checkpoint(config, device):
-    path = ROOT / "models" / f"{config['run_name']}.pt"
+    path = artifact_path(config, "models", f"{config['run_name']}.pt")
     checkpoint = torch.load(path, map_location=device, weights_only=False)
     model = build_model(
         checkpoint["config"],
@@ -534,16 +564,22 @@ def load_checkpoint(config, device):
 
 
 def save_results(result):
-    ensure_output_dirs()
+    config = {"benchmark_profile": result.get("benchmark_profile")}
+    ensure_output_dirs(config)
     stem = f"{result['run_name']}_{result['backend']}"
-    with open(ROOT / "results" / f"{stem}.json", "w", encoding="utf-8") as handle:
+    output = artifact_dir(config, "results") / "raw" / f"{stem}.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with open(output, "w", encoding="utf-8") as handle:
         json.dump(result, handle, indent=2)
 
 
 def result_record(config, backend, metrics, parameter_count, model_path, latencies):
-    return {
+    history_path = artifact_path(config, "logs", f"{config['run_name']}_history.json")
+    history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else {}
+    result = {
         "run_name": config["run_name"],
         "base_run_name": config.get("base_run_name", config["run_name"]),
+        "benchmark_profile": artifact_profile(config),
         "backend": backend,
         "dataset_id": config["dataset"]["id"],
         "model_name": resolve_model_name(config),
@@ -562,3 +598,16 @@ def result_record(config, backend, metrics, parameter_count, model_path, latenci
         "model_size_bytes": os.path.getsize(model_path),
         **latencies,
     }
+    if history:
+        result["training_selection"] = {
+            "max_epochs": history.get("max_epochs", config.get("training", {}).get("epochs")),
+            "selected_epoch": history.get("selected_epoch"),
+            "metric": history.get("selection_metric", "validation_loss"),
+            "validation_loss": (
+                history["validation_loss"][history["selected_epoch"] - 1]
+                if history.get("selected_epoch") and history.get("validation_loss")
+                else None
+            ),
+            "early_stopping": bool(config.get("training", {}).get("early_stopping", False)),
+        }
+    return result

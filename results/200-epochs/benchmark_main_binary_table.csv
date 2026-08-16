@@ -1,0 +1,16 @@
+task,model,architecture,base_run_name,accuracy_mean,accuracy_std,auc_mean,auc_std,signal_eff_at_1pct_fpr_mean,signal_eff_at_1pct_fpr_std,selected_epoch_mean,selected_epoch_std,max_epochs,synth_variant,latency_cycles_mean,latency_cycles_std,ii_cycles_mean,lut_mean,lut_std,ff_mean,dsp_mean,bram18_mean,seeds_metrics,seeds_synth,status
+qg_vs_wzt,Dense MLP,64-32-32,dense_baseline_64_32_32,0.86183,0.00028,0.93501,0.00029,0.59955,0.00263,179.67,30.89,200,hls4ml_latency_rf1,13.00,0.00,1.00,182944.3,444.2,35501.7,3651.00,1.00,3,3,complete
+qg_vs_wzt,Dense MLP,128-32,dense_128_32,0.86182,0.00036,0.93497,0.00024,0.60078,0.00205,169.00,26.29,200,hls4ml_latency_rf1,11.00,0.00,1.00,268373.3,956.3,50598.3,5373.00,1.00,3,3,complete
+qg_vs_wzt,QKeras fixed b7,64-32-32,qkeras_b7_64_32_32,0.86111,0.00041,0.93418,0.00002,0.59476,0.00159,152.33,53.98,200,hls4ml_latency_rf1,9.67,0.58,1.00,139255.3,1502.7,11863.7,981.00,1.00,3,3,complete
+qg_vs_wzt,QKeras fixed b7,128-32,qkeras_b7_128_32,0.86083,0.00006,0.93376,0.00008,0.59237,0.00085,112.67,3.79,200,hls4ml_latency_rf1,8.00,0.00,1.00,197107.0,1047.0,17366.7,1261.33,1.00,3,3,complete
+qg_vs_wzt,HGQ,64-32-32,hgq_64_32_32,0.85380,0.00118,0.92761,0.00024,0.57113,0.00123,191.00,8.19,200,hls4ml_latency_rf1,6.67,0.58,1.00,8007.0,783.8,637.3,0.00,1.00,3,3,complete
+qg_vs_wzt,HGQ,128-32,hgq_128_32,0.85343,0.00072,0.92754,0.00054,0.56945,0.00033,198.33,2.08,200,hls4ml_latency_rf1,6.67,0.58,1.00,8132.3,288.7,666.3,0.00,1.33,3,3,complete
+qg_vs_wzt,QKeras binary,64-32-32,qkeras_binary_64_32_32,0.83269,0.00519,0.89805,0.00037,0.48271,0.05517,118.33,68.00,200,hls4ml_latency_rf1,21.67,1.15,1.00,60554.3,1205.1,17401.3,0.00,1.00,3,3,complete
+qg_vs_wzt,QKeras binary,128-32,qkeras_binary_128_32,0.83707,0.00158,0.90293,0.00181,0.56246,0.02814,147.00,38.16,200,hls4ml_latency_rf1,23.00,0.00,1.00,92012.3,642.9,26356.3,0.00,1.00,3,3,complete
+qg_vs_wzt,QKeras ternary,64-32-32,qkeras_ternary_64_32_32,0.84170,0.00310,0.91026,0.00024,0.50233,0.05465,148.33,39.83,200,hls4ml_latency_rf1,14.67,1.53,1.00,35691.0,3556.4,11303.3,0.00,1.00,3,3,complete
+qg_vs_wzt,QKeras ternary,128-32,qkeras_ternary_128_32,0.84520,0.00026,0.91593,0.00044,0.53152,0.04785,180.00,5.57,200,hls4ml_latency_rf1,15.00,0.00,1.00,44609.0,3416.4,18673.7,0.00,1.00,3,3,complete
+qg_vs_wzt,BitNet binary,64-32-32,bitnet_64_32_32,0.84453,0.00072,0.91776,0.00014,0.49944,0.00323,21.00,7.94,200,hls4ml_patched_bitnet_latency_rf1,12.00,0.00,1.00,87324.7,842.9,16392.0,0.00,1.00,3,3,complete
+qg_vs_wzt,BitNet binary,128-32,bitnet_128_32,0.84631,0.00131,0.91989,0.00177,0.50159,0.01120,20.33,10.02,200,hls4ml_patched_bitnet_latency_rf1,9.67,0.58,1.00,114887.0,2877.6,20437.3,0.00,1.00,3,3,complete
+qg_vs_wzt,BitNet-1.58,64-32-32,bit158_64_32_32,0.85185,0.00070,0.92540,0.00080,0.54387,0.00129,92.33,63.89,200,hls4ml_patched_bitnet_latency_rf1,10.00,1.00,1.00,80744.0,2100.2,12442.0,0.00,1.00,3,3,complete
+qg_vs_wzt,BitNet-1.58,128-32,bit158_128_32,0.85238,0.00040,0.92602,0.00083,0.55105,0.00532,66.67,12.34,200,hls4ml_patched_bitnet_latency_rf1,7.67,0.58,1.00,94637.3,3469.4,15315.0,0.00,1.00,3,3,complete
+qg_vs_wzt,XGBoost BDT,100 trees depth 4,xgboost_bdt_d4_100,0.84719,0.00025,0.92075,0.00003,0.56123,0.00061,,,,conifer_unrolled,4.00,0.00,1.00,74075.5,149.2,2803.0,0.00,,3,3,complete

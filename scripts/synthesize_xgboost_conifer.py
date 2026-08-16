@@ -38,6 +38,10 @@ def ensure_clean_dir(path: Path):
     path.mkdir(parents=True, exist_ok=True)
 
 
+def display_path(path: Path) -> str:
+    return str(path.relative_to(ROOT) if path.is_relative_to(ROOT) else path)
+
+
 def find_csynth_xml(output_dir: Path, project_name: str) -> Path | None:
     report_dir = output_dir / project_name / "solution1" / "syn" / "report"
     candidates = []
@@ -78,6 +82,7 @@ def main():
     parser = argparse.ArgumentParser(description="Synthesize an XGBoost BDT with Conifer.")
     parser.add_argument("--config", required=True, help="Path to the trained XGBoost run config.")
     parser.add_argument("--hardware-config", default="configs/benchmark.json")
+    parser.add_argument("--profile", choices=("20-epochs", "200-epochs"), required=True)
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--project-name", default=None)
     parser.add_argument("--output-dir", default=None)
@@ -104,10 +109,10 @@ def main():
     output_dir = (
         Path(args.output_dir)
         if args.output_dir
-        else ROOT / "hls_projects" / run_name / variant_suffix
+        else ROOT / "hls_projects" / args.profile / run_name / variant_suffix
     )
-    model_path = ROOT / "models" / f"{model_run_name}.pkl"
-    result_dir = ROOT / "results" / "synthesis" / f"{run_name}_{variant_suffix}"
+    model_path = ROOT / "models" / args.profile / f"{model_run_name}.pkl"
+    result_dir = ROOT / "results" / args.profile / "synthesis" / f"{run_name}_{variant_suffix}"
     ensure_clean_dir(result_dir)
     ensure_clean_dir(output_dir)
 
@@ -167,8 +172,8 @@ def main():
         "tool": args.tool,
         "success": bool(success),
         "project_name": project_name,
-        "project_dir": str(output_dir.relative_to(ROOT)),
-        "model_path": str(model_path.relative_to(ROOT)),
+        "project_dir": display_path(output_dir),
+        "model_path": display_path(model_path),
         "xgboost_version": xgboost.__version__,
         "conifer_version": str(conifer.__version__),
         "conversion_seconds": conversion_seconds,

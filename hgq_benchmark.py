@@ -1,7 +1,10 @@
 import time
 
+import numpy as np
+
 from benchmark import (
     ROOT,
+    artifact_path,
     compute_metrics,
     result_record,
     save_results,
@@ -29,6 +32,10 @@ def train_hgq(model, arrays, config):
     from HGQ import FreeBOPs, ResetMinMax
 
     training = config["training"]
+    if training.get("optimizer", "adam") != "adam":
+        raise ValueError("HGQ benchmark profiles require the Adam optimizer")
+    if training.get("schedule", "cosine_decay") != "cosine_decay":
+        raise ValueError("HGQ benchmark profiles require full-profile cosine decay")
     binary = uses_binary_sigmoid(config)
     if binary:
         loss = keras.losses.BinaryCrossentropy(from_logits=True)
@@ -49,7 +56,8 @@ def train_hgq(model, arrays, config):
         loss=loss,
         metrics=metrics,
     )
-    checkpoint_path = ROOT / "models" / f"{config['run_name']}.weights.h5"
+    checkpoint_path = artifact_path(config, "models", f"{config['run_name']}.weights.h5")
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     callbacks = [
         ResetMinMax(),
         FreeBOPs(),
@@ -67,7 +75,7 @@ def train_hgq(model, arrays, config):
         validation_data=(arrays["x_validation"], y_validation),
         epochs=training["epochs"],
         batch_size=training["batch_size"],
-        shuffle=True,
+        shuffle=bool(training.get("shuffle", True)),
         callbacks=callbacks,
         verbose=2,
     ).history
@@ -76,6 +84,9 @@ def train_hgq(model, arrays, config):
         "train_loss": history["loss"],
         "validation_loss": history["val_loss"],
         "validation_accuracy": history["val_accuracy"],
+        "selected_epoch": int(np.argmin(history["val_loss"])) + 1,
+        "selection_metric": "validation_loss",
+        "max_epochs": int(training["epochs"]),
     }
     for key in ("bops", "lr", "learning_rate"):
         if key in history:

@@ -7,6 +7,7 @@ import numpy as np
 
 from benchmark import (
     ROOT,
+    artifact_path,
     compute_metrics,
     load_config,
     load_dataset,
@@ -17,7 +18,7 @@ from benchmark import (
 
 
 def load_checkpoint(config):
-    path = ROOT / "models" / f"{config['run_name']}.pkl"
+    path = artifact_path(config, "models", f"{config['run_name']}.pkl")
     with open(path, "rb") as handle:
         payload = pickle.load(handle)
     return payload["model"], payload, path

@@ -1,0 +1,4606 @@
+{
+  "schema_version": 1,
+  "training_profile": "20-epochs",
+  "training_protocol": {
+    "description": "Fixed 20-epoch comparison; select the minimum validation-loss checkpoint.",
+    "selection_metric": "validation_loss",
+    "selection_mode": "min",
+    "early_stopping": false,
+    "defaults": {
+      "epochs": 20,
+      "batch_size": 1024,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0,
+      "optimizer": "adam",
+      "schedule": "constant",
+      "shuffle": true,
+      "device": "cpu",
+      "num_threads": 16
+    },
+    "model_overrides": {
+      "hgq": {
+        "batch_size": 16384,
+        "learning_rate": 0.02,
+        "cosine_decay_steps": 20,
+        "weight_decay": 0.0,
+        "schedule": "cosine_decay",
+        "device": "cpu"
+      }
+    }
+  },
+  "dataset": {
+    "openml_id": 42468,
+    "split_seed": 42,
+    "model_seeds": [
+      42,
+      43,
+      44
+    ],
+    "train_fraction": 0.64,
+    "validation_fraction": 0.16,
+    "test_fraction": 0.2
+  },
+  "hardware": {
+    "part": "xcvu13p-flga2577-2-e",
+    "clock_period_ns": 5.0,
+    "target_ii": 1,
+    "result_level": "HLS C-synthesis estimates",
+    "place_and_route": false
+  },
+  "tasks": {
+    "qg_vs_wzt": {
+      "label": "q/g vs W/Z/top",
+      "class_mode": "binary_qg_vs_wzt",
+      "models": [
+        {
+          "model": "Dense MLP",
+          "architecture": "64-32-32",
+          "base_run_name": "dense_baseline_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8598433734939759,
+              "auc": 0.9324996431198108,
+              "signal_eff_at_1pct_fpr": 0.5864171698451606,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3173628083481846,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 183159,
+                "ff": 31903,
+                "dsp": 3479,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8594156626506024,
+              "auc": 0.9323458154730129,
+              "signal_eff_at_1pct_fpr": 0.5874334907634363,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.31768529399331796,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 183747,
+                "ff": 32245,
+                "dsp": 3424,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8593614457831326,
+              "auc": 0.9325757144462619,
+              "signal_eff_at_1pct_fpr": 0.5833482792291903,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.31770934051777944,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 183643,
+                "ff": 32089,
+                "dsp": 3463,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "Dense MLP",
+          "architecture": "128-32",
+          "base_run_name": "dense_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8593734939759036,
+              "auc": 0.9320562738637983,
+              "signal_eff_at_1pct_fpr": 0.5841354297443255,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3182114062826317,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 269538,
+                "ff": 47533,
+                "dsp": 4980,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8593072289156627,
+              "auc": 0.9325106022973398,
+              "signal_eff_at_1pct_fpr": 0.5814352045594946,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3185665600989238,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 269261,
+                "ff": 45440,
+                "dsp": 5000,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8593132530120482,
+              "auc": 0.931833084695634,
+              "signal_eff_at_1pct_fpr": 0.5767222653992548,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3192734925861818,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 270436,
+                "ff": 48971,
+                "dsp": 4962,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras fixed b7",
+          "architecture": "64-32-32",
+          "base_run_name": "qkeras_b7_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8595903614457832,
+              "auc": 0.9322736903719058,
+              "signal_eff_at_1pct_fpr": 0.581355493114924,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 16,
+                "metric": "validation_loss",
+                "validation_loss": 0.317128449678421,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 134907,
+                "ff": 10846,
+                "dsp": 636,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8597469879518073,
+              "auc": 0.9324038079534698,
+              "signal_eff_at_1pct_fpr": 0.5782766385683824,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3173544406890869,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 134848,
+                "ff": 10578,
+                "dsp": 676,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8591927710843373,
+              "auc": 0.9324786238076672,
+              "signal_eff_at_1pct_fpr": 0.5843247444251809,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3173123896121979,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 136529,
+                "ff": 10721,
+                "dsp": 682,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras fixed b7",
+          "architecture": "128-32",
+          "base_run_name": "qkeras_b7_128_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8594397590361446,
+              "auc": 0.9325468456431845,
+              "signal_eff_at_1pct_fpr": 0.5851517506626014,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.3167972266674042,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 188249,
+                "ff": 16393,
+                "dsp": 728,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8597771084337349,
+              "auc": 0.932652113663417,
+              "signal_eff_at_1pct_fpr": 0.5865765927343018,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.316519170999527,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 189386,
+                "ff": 16182,
+                "dsp": 781,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8597530120481928,
+              "auc": 0.9322459758655477,
+              "signal_eff_at_1pct_fpr": 0.583188856340049,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.3170946538448334,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 188000,
+                "ff": 15772,
+                "dsp": 727,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "HGQ",
+          "architecture": "64-32-32",
+          "base_run_name": "hgq_64_32_32",
+          "backend": "hgq",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8470421686746988,
+              "auc": 0.9206125567576455,
+              "signal_eff_at_1pct_fpr": 0.543034216137582,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3682687282562256,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 25186,
+                "ff": 1519,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8469578313253012,
+              "auc": 0.9197179727774196,
+              "signal_eff_at_1pct_fpr": 0.5341563539985253,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3702845871448517,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 25490,
+                "ff": 1589,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8463493975903614,
+              "auc": 0.9186623953723003,
+              "signal_eff_at_1pct_fpr": 0.527480520515733,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3711250424385071,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 22452,
+                "ff": 1603,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "HGQ",
+          "architecture": "128-32",
+          "base_run_name": "hgq_128_32",
+          "backend": "hgq",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8453915662650603,
+              "auc": 0.9171280902527712,
+              "signal_eff_at_1pct_fpr": 0.53000139495028,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.375900536775589,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 23782,
+                "ff": 1569,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8450301204819277,
+              "auc": 0.9184420461399067,
+              "signal_eff_at_1pct_fpr": 0.5206153723520854,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3802131414413452,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 27744,
+                "ff": 1651,
+                "dsp": 2,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8463192771084337,
+              "auc": 0.9174710315196665,
+              "signal_eff_at_1pct_fpr": 0.5281381399334409,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3788301646709442,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 24158,
+                "ff": 1569,
+                "dsp": 3,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras binary",
+          "architecture": "64-32-32",
+          "base_run_name": "qkeras_binary_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8298855421686747,
+              "auc": 0.889254866122259,
+              "signal_eff_at_1pct_fpr": 0.26730236543711766,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.4057661294937134,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 18,
+                "ii_cycles": 1,
+                "lut": 62162,
+                "ff": 16203,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8280783132530121,
+              "auc": 0.8945885098994748,
+              "signal_eff_at_1pct_fpr": 0.47441262629282,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.38751834630966187,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 20,
+                "ii_cycles": 1,
+                "lut": 61590,
+                "ff": 16717,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8303614457831325,
+              "auc": 0.8819696778225912,
+              "signal_eff_at_1pct_fpr": 0.5540543233494749,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 16,
+                "metric": "validation_loss",
+                "validation_loss": 0.3979378044605255,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 22,
+                "ii_cycles": 1,
+                "lut": 62327,
+                "ff": 17871,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras binary",
+          "architecture": "128-32",
+          "base_run_name": "qkeras_binary_128_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8309457831325301,
+              "auc": 0.8946455014783776,
+              "signal_eff_at_1pct_fpr": 0.47835834279906736,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 10,
+                "metric": "validation_loss",
+                "validation_loss": 0.38548824191093445,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 22,
+                "ii_cycles": 1,
+                "lut": 91435,
+                "ff": 25822,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8292710843373494,
+              "auc": 0.893559272212676,
+              "signal_eff_at_1pct_fpr": 0.3389230983838505,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 9,
+                "metric": "validation_loss",
+                "validation_loss": 0.38731256127357483,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 22,
+                "ii_cycles": 1,
+                "lut": 91439,
+                "ff": 25934,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8368072289156626,
+              "auc": 0.9008506205312448,
+              "signal_eff_at_1pct_fpr": 0.3776927522369024,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.375602126121521,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 21,
+                "ii_cycles": 1,
+                "lut": 91392,
+                "ff": 25517,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras ternary",
+          "architecture": "64-32-32",
+          "base_run_name": "qkeras_ternary_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8374216867469879,
+              "auc": 0.903684653586073,
+              "signal_eff_at_1pct_fpr": 0.4028716047906578,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.37197431921958923,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 13,
+                "ii_cycles": 1,
+                "lut": 31965,
+                "ff": 9829,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8329277108433735,
+              "auc": 0.9012144136735029,
+              "signal_eff_at_1pct_fpr": 0.41090253283115125,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 15,
+                "metric": "validation_loss",
+                "validation_loss": 0.3716585040092468,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 25888,
+                "ff": 6961,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8360060240963856,
+              "auc": 0.9024909446317996,
+              "signal_eff_at_1pct_fpr": 0.42771168370498797,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.3716575801372528,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 27009,
+                "ff": 8051,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras ternary",
+          "architecture": "128-32",
+          "base_run_name": "qkeras_ternary_128_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.840789156626506,
+              "auc": 0.9080946709952538,
+              "signal_eff_at_1pct_fpr": 0.4514955859787569,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 13,
+                "metric": "validation_loss",
+                "validation_loss": 0.36300987005233765,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 36539,
+                "ff": 15300,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8401987951807229,
+              "auc": 0.9072378286012781,
+              "signal_eff_at_1pct_fpr": 0.47089535880113986,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.36363503336906433,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 32009,
+                "ff": 15364,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8374156626506024,
+              "auc": 0.9080463169075836,
+              "signal_eff_at_1pct_fpr": 0.5655228074370777,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.36478564143180847,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 30710,
+                "ff": 14516,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet binary",
+          "architecture": "64-32-32",
+          "base_run_name": "bitnet_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.845210843373494,
+              "auc": 0.9168716834413151,
+              "signal_eff_at_1pct_fpr": 0.48797353580040254,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 11,
+                "metric": "validation_loss",
+                "validation_loss": 0.35211687096630234,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 88617,
+                "ff": 16528,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8457530120481928,
+              "auc": 0.9180566692505001,
+              "signal_eff_at_1pct_fpr": 0.508349773818776,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3488308432446905,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 88108,
+                "ff": 16081,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8451867469879518,
+              "auc": 0.9178251329489482,
+              "signal_eff_at_1pct_fpr": 0.49625356210517924,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 12,
+                "metric": "validation_loss",
+                "validation_loss": 0.34971893235861534,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 88273,
+                "ff": 16938,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet binary",
+          "architecture": "128-32",
+          "base_run_name": "bitnet_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8475963855421687,
+              "auc": 0.9201585557594041,
+              "signal_eff_at_1pct_fpr": 0.5057890436619438,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3458156177365636,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 111381,
+                "ff": 20386,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.845855421686747,
+              "auc": 0.9191553739984853,
+              "signal_eff_at_1pct_fpr": 0.4950778182977621,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.3497818976281637,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 112520,
+                "ff": 19931,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8448493975903615,
+              "auc": 0.9178488895412658,
+              "signal_eff_at_1pct_fpr": 0.49130148861122735,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 10,
+                "metric": "validation_loss",
+                "validation_loss": 0.3499832579026739,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 115350,
+                "ff": 20556,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet-1.58",
+          "architecture": "64-32-32",
+          "base_run_name": "bit158_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8496325301204819,
+              "auc": 0.9242838920077538,
+              "signal_eff_at_1pct_fpr": 0.5428449014567267,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.33779480945633117,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 87800,
+                "ff": 14107,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8467409638554216,
+              "auc": 0.9218601438091953,
+              "signal_eff_at_1pct_fpr": 0.5278691138080149,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.34117491499487174,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 85874,
+                "ff": 10891,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8504397590361445,
+              "auc": 0.9235886700916927,
+              "signal_eff_at_1pct_fpr": 0.5329108626771089,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.33823094592036973,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 88129,
+                "ff": 13092,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet-1.58",
+          "architecture": "128-32",
+          "base_run_name": "bit158_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8488132530120482,
+              "auc": 0.9225514387786714,
+              "signal_eff_at_1pct_fpr": 0.5417189773021661,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.3380009947483798,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 94368,
+                "ff": 14904,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8504638554216868,
+              "auc": 0.9235433439835938,
+              "signal_eff_at_1pct_fpr": 0.5251788525537554,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.33951693767524627,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 103771,
+                "ff": 15983,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8507289156626506,
+              "auc": 0.92393848693064,
+              "signal_eff_at_1pct_fpr": 0.5295928737968554,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 15,
+                "metric": "validation_loss",
+                "validation_loss": 0.3367284441137888,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 110793,
+                "ff": 16724,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "XGBoost BDT",
+          "architecture": "100 trees depth 4",
+          "base_run_name": "xgboost_bdt_d4_100",
+          "backend": "xgboost",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8474819277108434,
+              "auc": 0.9207411789830275,
+              "signal_eff_at_1pct_fpr": 0.5607700125545525,
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vivadohls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": null,
+                "latency_cycles": null,
+                "ii_cycles": null,
+                "lut": null,
+                "ff": null,
+                "dsp": null,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8470722891566265,
+              "auc": 0.9207803852236567,
+              "signal_eff_at_1pct_fpr": 0.561925828500827,
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vitishls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 4,
+                "ii_cycles": 1,
+                "lut": 74181,
+                "ff": 2826,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8470301204819277,
+              "auc": 0.9207318808906974,
+              "signal_eff_at_1pct_fpr": 0.5609991829576931,
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vitishls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 4,
+                "ii_cycles": 1,
+                "lut": 73970,
+                "ff": 2780,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "qg_vs_top": {
+      "label": "q/g vs top",
+      "class_mode": "binary_top_vs_qg",
+      "models": [
+        {
+          "model": "Dense MLP",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_dense_baseline_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.9100787226965296,
+              "auc": 0.9641564422594898,
+              "signal_eff_at_1pct_fpr": 0.5710881415507432,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.2274546639335183,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 183049,
+                "ff": 32302,
+                "dsp": 3421,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.9088993942081868,
+              "auc": 0.9633057550918842,
+              "signal_eff_at_1pct_fpr": 0.5602454499419142,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 15,
+                "metric": "validation_loss",
+                "validation_loss": 0.2296050750957824,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 184821,
+                "ff": 33286,
+                "dsp": 3439,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.909967845659164,
+              "auc": 0.9640204696148866,
+              "signal_eff_at_1pct_fpr": 0.5782073813708261,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.2269305441901853,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 13,
+                "ii_cycles": 1,
+                "lut": 183374,
+                "ff": 35654,
+                "dsp": 3454,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "Dense MLP",
+          "architecture": "128-32",
+          "base_run_name": "topqg_dense_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.9094940983176929,
+              "auc": 0.9640118338252586,
+              "signal_eff_at_1pct_fpr": 0.5717732566798726,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.22789916150301087,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 270056,
+                "ff": 45893,
+                "dsp": 4901,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.9085264441734117,
+              "auc": 0.9632543223542429,
+              "signal_eff_at_1pct_fpr": 0.5641178398022102,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.22962816183110168,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 269854,
+                "ff": 45630,
+                "dsp": 4966,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.9091816266669355,
+              "auc": 0.9636450825033097,
+              "signal_eff_at_1pct_fpr": 0.5695391856066248,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.2286198695625608,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 271305,
+                "ff": 45756,
+                "dsp": 4973,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras fixed b7",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_qkeras_b7_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.909917447005816,
+              "auc": 0.964224052538007,
+              "signal_eff_at_1pct_fpr": 0.5845521432188496,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.226013645529747,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 134381,
+                "ff": 10625,
+                "dsp": 651,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.9109657389954541,
+              "auc": 0.964356478492389,
+              "signal_eff_at_1pct_fpr": 0.5759733102975783,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 16,
+                "metric": "validation_loss",
+                "validation_loss": 0.22588573396205902,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 134806,
+                "ff": 11376,
+                "dsp": 597,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.9099073672751464,
+              "auc": 0.9639956938377068,
+              "signal_eff_at_1pct_fpr": 0.5746924428822495,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.2268812358379364,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 134104,
+                "ff": 10609,
+                "dsp": 633,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras fixed b7",
+          "architecture": "128-32",
+          "base_run_name": "topqg_qkeras_b7_128_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.9104819119233134,
+              "auc": 0.9646856019509082,
+              "signal_eff_at_1pct_fpr": 0.5764499121265377,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.2250441163778305,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 187045,
+                "ff": 15740,
+                "dsp": 710,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.9107943835740709,
+              "auc": 0.964451142820897,
+              "signal_eff_at_1pct_fpr": 0.5753775580113789,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.22603848576545715,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 186107,
+                "ff": 15863,
+                "dsp": 676,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.9102399983872431,
+              "auc": 0.96437792518441,
+              "signal_eff_at_1pct_fpr": 0.576211611212058,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.2259848266839981,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 185543,
+                "ff": 16163,
+                "dsp": 654,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "HGQ",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_hgq_64_32_32",
+          "backend": "hgq",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8975697769355603,
+              "auc": 0.9538656220478862,
+              "signal_eff_at_1pct_fpr": 0.5151470018766197,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.30529746413230896,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 62041,
+                "ff": 3541,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8975596972048907,
+              "auc": 0.9540799285439252,
+              "signal_eff_at_1pct_fpr": 0.5134788954752614,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.30325010418891907,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 59336,
+                "ff": 3706,
+                "dsp": 1,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8959368605670857,
+              "auc": 0.9535677084649166,
+              "signal_eff_at_1pct_fpr": 0.49587441541806915,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.30438748002052307,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 58269,
+                "ff": 3565,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "HGQ",
+          "architecture": "128-32",
+          "base_run_name": "topqg_hgq_128_32",
+          "backend": "hgq",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8959167011057465,
+              "auc": 0.9530507496329198,
+              "signal_eff_at_1pct_fpr": 0.4990914777635459,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.3240927457809448,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 85555,
+                "ff": 4927,
+                "dsp": 20,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8935177252063825,
+              "auc": 0.9515274633712387,
+              "signal_eff_at_1pct_fpr": 0.48795091001161717,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.33134332299232483,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 89990,
+                "ff": 5470,
+                "dsp": 4,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8970960295940893,
+              "auc": 0.9534787663099793,
+              "signal_eff_at_1pct_fpr": 0.49769145989097735,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3277464210987091,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 86526,
+                "ff": 4938,
+                "dsp": 15,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras binary",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_qkeras_binary_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8778235845538207,
+              "auc": 0.9359843018355878,
+              "signal_eff_at_1pct_fpr": 0.38613684430014,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.3015078604221344,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 23,
+                "ii_cycles": 1,
+                "lut": 61924,
+                "ff": 17696,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8776119102097591,
+              "auc": 0.9368676386119217,
+              "signal_eff_at_1pct_fpr": 0.4042775014149117,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.29830077290534973,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 20,
+                "ii_cycles": 1,
+                "lut": 61680,
+                "ff": 16877,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8674313822334667,
+              "auc": 0.933522114853923,
+              "signal_eff_at_1pct_fpr": 0.413869113222722,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 10,
+                "metric": "validation_loss",
+                "validation_loss": 0.30509036779403687,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 22,
+                "ii_cycles": 1,
+                "lut": 62357,
+                "ff": 17039,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras binary",
+          "architecture": "128-32",
+          "base_run_name": "topqg_qkeras_binary_128_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8828735296192886,
+              "auc": 0.9411672965787876,
+              "signal_eff_at_1pct_fpr": 0.4533079145691222,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.28808072209358215,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 23,
+                "ii_cycles": 1,
+                "lut": 92233,
+                "ff": 26383,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8794262617302866,
+              "auc": 0.9423471353415417,
+              "signal_eff_at_1pct_fpr": 0.39304757082005304,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.28407174348831177,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 23,
+                "ii_cycles": 1,
+                "lut": 91296,
+                "ff": 26207,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8721990948401859,
+              "auc": 0.9377801376432842,
+              "signal_eff_at_1pct_fpr": 0.3818176402251944,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 11,
+                "metric": "validation_loss",
+                "validation_loss": 0.2990420460700989,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 22,
+                "ii_cycles": 1,
+                "lut": 90388,
+                "ff": 26014,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras ternary",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_qkeras_ternary_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8843149311050409,
+              "auc": 0.9406259537267949,
+              "signal_eff_at_1pct_fpr": 0.48184444907807333,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.28460368514060974,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 14,
+                "ii_cycles": 1,
+                "lut": 31738,
+                "ff": 9991,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8844560473344152,
+              "auc": 0.9428247317095908,
+              "signal_eff_at_1pct_fpr": 0.4095201215334664,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.282179594039917,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 26254,
+                "ff": 7332,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8868953421564576,
+              "auc": 0.9408153479603102,
+              "signal_eff_at_1pct_fpr": 0.4083881921896875,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.2842962145805359,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 25486,
+                "ff": 7891,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras ternary",
+          "architecture": "128-32",
+          "base_run_name": "topqg_qkeras_ternary_128_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8917840115312119,
+              "auc": 0.9477489963031183,
+              "signal_eff_at_1pct_fpr": 0.42226922045813353,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.27159813046455383,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 31930,
+                "ff": 14178,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.886683667812396,
+              "auc": 0.9465143875488647,
+              "signal_eff_at_1pct_fpr": 0.5864287629203777,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 15,
+                "metric": "validation_loss",
+                "validation_loss": 0.27579766511917114,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 22408,
+                "ff": 11040,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8870465381165016,
+              "auc": 0.9443739483713489,
+              "signal_eff_at_1pct_fpr": 0.5373089869232374,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 12,
+                "metric": "validation_loss",
+                "validation_loss": 0.275411456823349,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 25990,
+                "ff": 11472,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet binary",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_bitnet_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8983862351197976,
+              "auc": 0.9543741915126712,
+              "signal_eff_at_1pct_fpr": 0.482201900449793,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.2543597654990849,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 88345,
+                "ff": 15936,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.897025471479402,
+              "auc": 0.9535961087618655,
+              "signal_eff_at_1pct_fpr": 0.46221441124780316,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 11,
+                "metric": "validation_loss",
+                "validation_loss": 0.2567662260314499,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 91775,
+                "ff": 16960,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8979628864316745,
+              "auc": 0.9541716427241391,
+              "signal_eff_at_1pct_fpr": 0.4993297786780257,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.2561404469571448,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 86433,
+                "ff": 15910,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet binary",
+          "architecture": "128-32",
+          "base_run_name": "topqg_bitnet_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.898426554042476,
+              "auc": 0.9552324071573888,
+              "signal_eff_at_1pct_fpr": 0.47549968723004976,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.2510664725202415,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 111514,
+                "ff": 20125,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8951909604975355,
+              "auc": 0.952894557189487,
+              "signal_eff_at_1pct_fpr": 0.4888147508266063,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.25811457391399056,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 118200,
+                "ff": 20408,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8980636837383705,
+              "auc": 0.9544133156094472,
+              "signal_eff_at_1pct_fpr": 0.48095082064877426,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.2541576121294622,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 115355,
+                "ff": 20402,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet-1.58",
+          "architecture": "64-32-32",
+          "base_run_name": "topqg_bit158_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8997066798375147,
+              "auc": 0.9565453473805414,
+              "signal_eff_at_1pct_fpr": 0.5177980995502071,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.24867635372620264,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 92290,
+                "ff": 13631,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.8986886270398855,
+              "auc": 0.9548659907520943,
+              "signal_eff_at_1pct_fpr": 0.48351255547943167,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 11,
+                "metric": "validation_loss",
+                "validation_loss": 0.252795745817058,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 96370,
+                "ff": 14085,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.8986079891945287,
+              "auc": 0.9554914984316248,
+              "signal_eff_at_1pct_fpr": 0.49381907003068126,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 14,
+                "metric": "validation_loss",
+                "validation_loss": 0.2521285132443523,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 94953,
+                "ff": 12900,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet-1.58",
+          "architecture": "128-32",
+          "base_run_name": "topqg_bit158_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.8982854378131017,
+              "auc": 0.9559914972294645,
+              "signal_eff_at_1pct_fpr": 0.49962765482112537,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.25081070969207114,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 112831,
+                "ff": 16838,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.9002308258323337,
+              "auc": 0.9575502485780907,
+              "signal_eff_at_1pct_fpr": 0.5235471091120312,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.24775135249351188,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 114494,
+                "ff": 15215,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.9012085597072846,
+              "auc": 0.9568518704317761,
+              "signal_eff_at_1pct_fpr": 0.5004319204074945,
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.24876385363762304,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 112964,
+                "ff": 17634,
+                "dsp": 0,
+                "bram18": 1,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "XGBoost BDT",
+          "architecture": "100 trees depth 4",
+          "base_run_name": "topqg_xgboost_bdt_d4_100",
+          "backend": "xgboost",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.9036982531826749,
+              "auc": 0.9586470462766749,
+              "signal_eff_at_1pct_fpr": 0.5433558726281612,
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vitishls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 4,
+                "ii_cycles": 1,
+                "lut": 74511,
+                "ff": 3196,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.9027910774224113,
+              "auc": 0.9583052636039631,
+              "signal_eff_at_1pct_fpr": 0.5460665455303685,
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vitishls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 4,
+                "ii_cycles": 1,
+                "lut": 74553,
+                "ff": 3319,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.903174107187856,
+              "auc": 0.9583113593820537,
+              "signal_eff_at_1pct_fpr": 0.5368323850942778,
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vitishls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 4,
+                "ii_cycles": 1,
+                "lut": 74418,
+                "ff": 3213,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "multiclass": {
+      "label": "q/g/W/Z/top",
+      "class_mode": "multiclass",
+      "coverage": "partial",
+      "models": [
+        {
+          "model": "Dense MLP",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_dense_baseline_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7661265060240964,
+              "macro_auc": 0.94172613150141,
+              "per_class_auc": {
+                "gluon": 0.9400982178135151,
+                "quark": 0.9046245791292834,
+                "W": 0.9535318831574311,
+                "Z": 0.9477924020798696,
+                "top": 0.9625835753269509
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.6550303082293775,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 188272,
+                "ff": 33797,
+                "dsp": 3635,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7665602409638554,
+              "macro_auc": 0.9422861689467116,
+              "per_class_auc": {
+                "gluon": 0.9406288473621922,
+                "quark": 0.9049042082023363,
+                "W": 0.9541679471212579,
+                "Z": 0.9487179082697053,
+                "top": 0.9630119337780667
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.6508806944180684,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 189032,
+                "ff": 33356,
+                "dsp": 3587,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7665843373493976,
+              "macro_auc": 0.9422145765768495,
+              "per_class_auc": {
+                "gluon": 0.9402246063566564,
+                "quark": 0.9052589620996441,
+                "W": 0.953965786367081,
+                "Z": 0.9483015923215679,
+                "top": 0.9633219357392985
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.6508997495203133,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 187797,
+                "ff": 31891,
+                "dsp": 3644,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "Dense MLP",
+          "architecture": "128-32",
+          "base_run_name": "multiclass_dense_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7665722891566265,
+              "macro_auc": 0.9423323446569561,
+              "per_class_auc": {
+                "gluon": 0.9407349006524722,
+                "quark": 0.9048284467879866,
+                "W": 0.9541841251096512,
+                "Z": 0.9488301798811805,
+                "top": 0.9630840708534909
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.6517959061300899,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 273756,
+                "ff": 50968,
+                "dsp": 5269,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7661927710843374,
+              "macro_auc": 0.9419525062569034,
+              "per_class_auc": {
+                "gluon": 0.9407206718202298,
+                "quark": 0.9042145231062713,
+                "W": 0.9538407455737032,
+                "Z": 0.948085023146138,
+                "top": 0.9629015676381749
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.6534316066374262,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 274051,
+                "ff": 45350,
+                "dsp": 5188,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7662590361445784,
+              "macro_auc": 0.9421787274456097,
+              "per_class_auc": {
+                "gluon": 0.9400715473142804,
+                "quark": 0.904949897434755,
+                "W": 0.9539036067312774,
+                "Z": 0.9486014447256669,
+                "top": 0.9633671410220688
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.6521203151668411,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 274853,
+                "ff": 45947,
+                "dsp": 5195,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras fixed b7",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_qkeras_b7_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7659819277108434,
+              "macro_auc": 0.9419061231852341,
+              "per_class_auc": {
+                "gluon": 0.9400411180022429,
+                "quark": 0.9044813429935106,
+                "W": 0.9538392077202227,
+                "Z": 0.9482813358325656,
+                "top": 0.9628876113776286
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 15,
+                "metric": "validation_loss",
+                "validation_loss": 0.652655303478241,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 158353,
+                "ff": 13160,
+                "dsp": 192,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7664698795180723,
+              "macro_auc": 0.942361635062136,
+              "per_class_auc": {
+                "gluon": 0.9402147717010355,
+                "quark": 0.9050943960770722,
+                "W": 0.954352283468576,
+                "Z": 0.94870946950619,
+                "top": 0.9634372545578062
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.6516110301017761,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 158056,
+                "ff": 12736,
+                "dsp": 174,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7665722891566265,
+              "macro_auc": 0.9422608095179641,
+              "per_class_auc": {
+                "gluon": 0.9403962571530969,
+                "quark": 0.9046286904548125,
+                "W": 0.9541895417349905,
+                "Z": 0.9487968517016313,
+                "top": 0.9632927065452894
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.651265025138855,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 158923,
+                "ff": 13178,
+                "dsp": 188,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "HGQ",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_hgq_64_32_32",
+          "backend": "hgq",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7527771084337349,
+              "macro_auc": 0.9337510416655241,
+              "per_class_auc": {
+                "gluon": 0.9319110430852211,
+                "quark": 0.8951484617561677,
+                "W": 0.9471562341278796,
+                "Z": 0.9393317824538365,
+                "top": 0.9552076869045154
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.7604312300682068,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 54325,
+                "ff": 3674,
+                "dsp": 2,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.753289156626506,
+              "macro_auc": 0.9351744684542126,
+              "per_class_auc": {
+                "gluon": 0.9329331018936093,
+                "quark": 0.8980322197568426,
+                "W": 0.9471893200405518,
+                "Z": 0.9409810037170785,
+                "top": 0.9567366968629805
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.7598206996917725,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 56706,
+                "ff": 3971,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.752722891566265,
+              "macro_auc": 0.9347957514286389,
+              "per_class_auc": {
+                "gluon": 0.9325852004291612,
+                "quark": 0.8968946617984324,
+                "W": 0.9473428471799836,
+                "Z": 0.9406259010544077,
+                "top": 0.9565301466812094
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.7559812664985657,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 50747,
+                "ff": 3750,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "HGQ",
+          "architecture": "128-32",
+          "base_run_name": "multiclass_hgq_128_32",
+          "backend": "hgq",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7495662650602409,
+              "macro_auc": 0.9325381855089674,
+              "per_class_auc": {
+                "gluon": 0.9302040993152293,
+                "quark": 0.895518204467156,
+                "W": 0.9462118779960849,
+                "Z": 0.9375803554134147,
+                "top": 0.9531763903529522
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.7718750834465027,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 5,
+                "ii_cycles": 1,
+                "lut": 58819,
+                "ff": 3885,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7511807228915662,
+              "macro_auc": 0.9337920329378531,
+              "per_class_auc": {
+                "gluon": 0.9311737464194848,
+                "quark": 0.8965383453723488,
+                "W": 0.9464695223415647,
+                "Z": 0.9388281423715172,
+                "top": 0.9559504081843497
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 20,
+                "metric": "validation_loss",
+                "validation_loss": 0.7668496966362,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 6,
+                "ii_cycles": 1,
+                "lut": 60512,
+                "ff": 5529,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7500963855421686,
+              "macro_auc": 0.9329886906018376,
+              "per_class_auc": {
+                "gluon": 0.9305054698297389,
+                "quark": 0.8955546625051067,
+                "W": 0.9456399100318946,
+                "Z": 0.9380657952112169,
+                "top": 0.9551776154312313
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 19,
+                "metric": "validation_loss",
+                "validation_loss": 0.770462691783905,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 6,
+                "ii_cycles": 1,
+                "lut": 62440,
+                "ff": 4160,
+                "dsp": 3,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras binary",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_qkeras_binary_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.6310963855421686,
+              "macro_auc": 0.8552876615264168,
+              "per_class_auc": {
+                "0": 0.8549486685328339,
+                "1": 0.8268880497469976,
+                "2": 0.8700593147232216,
+                "3": 0.8217035713463732,
+                "4": 0.9028387032826577
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 14,
+                "metric": "validation_loss",
+                "validation_loss": 1.0907676219940186,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 59675,
+                "ff": 7717,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.6322168674698795,
+              "macro_auc": 0.8679602427822342,
+              "per_class_auc": {
+                "gluon": 0.8752996213458435,
+                "quark": 0.8562296324133352,
+                "W": 0.8664248608013677,
+                "Z": 0.8528245038847527,
+                "top": 0.8890225954658719
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 14,
+                "metric": "validation_loss",
+                "validation_loss": 1.013655185699463,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 59664,
+                "ff": 8378,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.5809578313253012,
+              "macro_auc": 0.8445942410824661,
+              "per_class_auc": {
+                "gluon": 0.8689955669241284,
+                "quark": 0.8504355390365814,
+                "W": 0.7987635835648504,
+                "Z": 0.8029561532156435,
+                "top": 0.9018203626711272
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 9,
+                "metric": "validation_loss",
+                "validation_loss": 1.079770565032959,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 59378,
+                "ff": 8130,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "QKeras ternary",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_qkeras_ternary_64_32_32",
+          "backend": "qkeras",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7087168674698795,
+              "macro_auc": 0.8978599687779921,
+              "per_class_auc": {
+                "0": 0.8920126398021131,
+                "1": 0.8687241560475623,
+                "2": 0.9243107277559164,
+                "3": 0.8884390777691882,
+                "4": 0.9158132425151806
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.871655285358429,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 43210,
+                "ff": 5596,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.6993493975903614,
+              "macro_auc": 0.8938463574325348,
+              "per_class_auc": {
+                "gluon": 0.8908146235792358,
+                "quark": 0.8670473179895356,
+                "W": 0.9129304845891246,
+                "Z": 0.8899654855747,
+                "top": 0.9084738754300781
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 9,
+                "metric": "validation_loss",
+                "validation_loss": 0.8901225924491882,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 6,
+                "ii_cycles": 1,
+                "lut": 38513,
+                "ff": 4500,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.711644578313253,
+              "macro_auc": 0.8973757969443522,
+              "per_class_auc": {
+                "gluon": 0.8970684234421719,
+                "quark": 0.8635479175022888,
+                "W": 0.9243652588644005,
+                "Z": 0.8893212065502477,
+                "top": 0.9125761783626518
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 13,
+                "metric": "validation_loss",
+                "validation_loss": 0.8700479865074158,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_latency_rf1",
+                "source_variant": "hls4ml_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 7,
+                "ii_cycles": 1,
+                "lut": 38327,
+                "ff": 5246,
+                "dsp": 0,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet binary",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_bitnet_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7215240963855422,
+              "macro_auc": 0.9155502022993816,
+              "per_class_auc": {
+                "gluon": 0.9153754655745163,
+                "quark": 0.8853825287083088,
+                "W": 0.9314193395123859,
+                "Z": 0.9085556547247138,
+                "top": 0.9370180229769827
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 6,
+                "metric": "validation_loss",
+                "validation_loss": 0.8033782669722316,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 90153,
+                "ff": 16735,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7178433734939759,
+              "macro_auc": 0.9159897254437922,
+              "per_class_auc": {
+                "gluon": 0.9157295477038371,
+                "quark": 0.8849137176355191,
+                "W": 0.9300173837752155,
+                "Z": 0.9110302092224491,
+                "top": 0.9382577688819409
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 7,
+                "metric": "validation_loss",
+                "validation_loss": 0.8098105681373412,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 14,
+                "ii_cycles": 1,
+                "lut": 94515,
+                "ff": 19938,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7241867469879518,
+              "macro_auc": 0.9161169033811547,
+              "per_class_auc": {
+                "gluon": 0.9165572526579627,
+                "quark": 0.8842756323026479,
+                "W": 0.9330053089489625,
+                "Z": 0.9088839357965597,
+                "top": 0.9378623871996403
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 6,
+                "metric": "validation_loss",
+                "validation_loss": 0.8014771786942539,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 14,
+                "ii_cycles": 1,
+                "lut": 91775,
+                "ff": 19311,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet binary",
+          "architecture": "128-32",
+          "base_run_name": "multiclass_bitnet_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7203614457831325,
+              "macro_auc": 0.9155893497708748,
+              "per_class_auc": {
+                "gluon": 0.9157650431142758,
+                "quark": 0.8856816811537884,
+                "W": 0.9284254274649957,
+                "Z": 0.9128865142135008,
+                "top": 0.9351880829078132
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 10,
+                "metric": "validation_loss",
+                "validation_loss": 0.815546012441796,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 119270,
+                "ff": 23058,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7190783132530121,
+              "macro_auc": 0.911505963889643,
+              "per_class_auc": {
+                "gluon": 0.9150025144599288,
+                "quark": 0.8866423696257413,
+                "W": 0.9130773751578056,
+                "Z": 0.9028413633947199,
+                "top": 0.9399661968100187
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 5,
+                "metric": "validation_loss",
+                "validation_loss": 0.8346957932035607,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 121422,
+                "ff": 23308,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7229457831325301,
+              "macro_auc": 0.9135155994774996,
+              "per_class_auc": {
+                "gluon": 0.9144579757354998,
+                "quark": 0.8873422372628706,
+                "W": 0.9246286629096,
+                "Z": 0.9009222666200709,
+                "top": 0.9402268548594566
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 4,
+                "metric": "validation_loss",
+                "validation_loss": 0.8142041807576834,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 118475,
+                "ff": 22812,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet-1.58",
+          "architecture": "64-32-32",
+          "base_run_name": "multiclass_bit158_64_32_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7443614457831326,
+              "macro_auc": 0.9295649788311261,
+              "per_class_auc": {
+                "gluon": 0.9255181848633962,
+                "quark": 0.8932381396917481,
+                "W": 0.9440554559909692,
+                "Z": 0.9352243753366727,
+                "top": 0.949788738272844
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 18,
+                "metric": "validation_loss",
+                "validation_loss": 0.7279295333896775,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 12,
+                "ii_cycles": 1,
+                "lut": 90781,
+                "ff": 15044,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7405602409638554,
+              "macro_auc": 0.92908845349156,
+              "per_class_auc": {
+                "gluon": 0.9277017627509638,
+                "quark": 0.8919522958034243,
+                "W": 0.9429596886084125,
+                "Z": 0.9338991026909106,
+                "top": 0.948929417604089
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.7335535547532231,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 93543,
+                "ff": 14668,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7412831325301205,
+              "macro_auc": 0.9287955759827448,
+              "per_class_auc": {
+                "gluon": 0.9244529894665966,
+                "quark": 0.8949663473334991,
+                "W": 0.9435620652637204,
+                "Z": 0.9312589491222683,
+                "top": 0.9497375287276391
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 10,
+                "metric": "validation_loss",
+                "validation_loss": 0.7312738885936967,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 11,
+                "ii_cycles": 1,
+                "lut": 98251,
+                "ff": 15178,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "BitNet-1.58",
+          "architecture": "128-32",
+          "base_run_name": "multiclass_bit158_128_32",
+          "backend": "pytorch",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7411265060240964,
+              "macro_auc": 0.9278806064097187,
+              "per_class_auc": {
+                "gluon": 0.926420876062448,
+                "quark": 0.8928097741913628,
+                "W": 0.9419098345090421,
+                "Z": 0.92715063663352,
+                "top": 0.9511119106522201
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 16,
+                "metric": "validation_loss",
+                "validation_loss": 0.7377575680433985,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 10,
+                "ii_cycles": 1,
+                "lut": 113640,
+                "ff": 19236,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7403253012048193,
+              "macro_auc": 0.9288171291127192,
+              "per_class_auc": {
+                "gluon": 0.9258009149927272,
+                "quark": 0.8930580027938038,
+                "W": 0.9413395210887631,
+                "Z": 0.9327738659945568,
+                "top": 0.9511133406937452
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.7397142793758806,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 8,
+                "ii_cycles": 1,
+                "lut": 107735,
+                "ff": 16344,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.7423012048192771,
+              "macro_auc": 0.9279281758078319,
+              "per_class_auc": {
+                "gluon": 0.9257539521172518,
+                "quark": 0.8928845147644073,
+                "W": 0.9424629939845985,
+                "Z": 0.9283300129691796,
+                "top": 0.9502094052037227
+              },
+              "training_selection": {
+                "max_epochs": 20,
+                "selected_epoch": 17,
+                "metric": "validation_loss",
+                "validation_loss": 0.7367294820819993,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "hls4ml_patched_bitnet_latency_rf1",
+                "source_variant": "hls4ml_patched_bitnet_latency_rf1",
+                "tool": "Vitis HLS",
+                "tool_version": "2023.1",
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 9,
+                "ii_cycles": 1,
+                "lut": 112235,
+                "ff": 18580,
+                "dsp": 10,
+                "bram18": null,
+                "place_and_route": "not_run"
+              }
+            }
+          ]
+        },
+        {
+          "model": "XGBoost BDT",
+          "architecture": "100 trees depth 4",
+          "base_run_name": "multiclass_xgboost_bdt_d4_100",
+          "backend": "xgboost",
+          "runs": [
+            {
+              "seed": 42,
+              "accuracy": 0.7523795180722892,
+              "macro_auc": 0.9334770497297853,
+              "per_class_auc": {
+                "gluon": 0.9286892546534178,
+                "quark": 0.8961470087178718,
+                "W": 0.9466309345490731,
+                "Z": 0.9386239069212494,
+                "top": 0.957294143807315
+              },
+              "training_selection": {
+                "max_epochs": null,
+                "selected_epoch": null,
+                "metric": "validation_loss",
+                "validation_loss": null,
+                "early_stopping": false
+              },
+              "synthesis": {
+                "implementation": "conifer_unrolled",
+                "source_variant": "conifer_unrolled",
+                "tool": "vivadohls",
+                "tool_version": null,
+                "part": "xcvu13p-flga2577-2-e",
+                "clock_target_ns": 5.0,
+                "latency_cycles": 3,
+                "ii_cycles": 1,
+                "lut": 376699,
+                "ff": 20923,
+                "dsp": 0,
+                "bram18": 0,
+                "place_and_route": "not_run"
+              }
+            },
+            {
+              "seed": 43,
+              "accuracy": 0.7524277108433735,
+              "macro_auc": 0.933498939686374,
+              "per_class_auc": {
+                "gluon": 0.9287625691614702,
+                "quark": 0.8961099042283069,
+                "W": 0.9467302258045533,
+                "Z": 0.9388125633156481,
+                "top": 0.9570794359218918
+              },
+              "training_selection": {
+                "max_epochs": null,
+                "selected_epoch": null,
+                "metric": "validation_loss",
+                "validation_loss": null,
+                "early_stopping": false
+              }
+            },
+            {
+              "seed": 44,
+              "accuracy": 0.752578313253012,
+              "macro_auc": 0.9334156353166726,
+              "per_class_auc": {
+                "gluon": 0.9285673493123027,
+                "quark": 0.8959582022680048,
+                "W": 0.9466775166015945,
+                "Z": 0.9388525478684161,
+                "top": 0.9570225605330449
+              },
+              "training_selection": {
+                "max_epochs": null,
+                "selected_epoch": null,
+                "metric": "validation_loss",
+                "validation_loss": null,
+                "early_stopping": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "training_curves": [
+    {
+      "task": "qg_vs_wzt",
+      "model": "Dense MLP",
+      "architecture": "64-32-32",
+      "base_run_name": "dense_baseline_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.3963072249257421,
+          0.34879884702613556,
+          0.3401006805035005,
+          0.3347057330608368,
+          0.33139520063457717,
+          0.3285928648638438,
+          0.32681085852255304,
+          0.3255345823678626,
+          0.3240754933673215,
+          0.3236035888022687,
+          0.3230383524119136,
+          0.3218262985384608,
+          0.3216146196945604,
+          0.3210634309843362,
+          0.3204865002201264,
+          0.3199338081514979,
+          0.3200842846588916,
+          0.3194696659065155,
+          0.3194340336610036,
+          0.31915294640035513
+        ],
+        "validation_loss": [
+          0.3534850353361612,
+          0.3429994676917432,
+          0.3339028481833906,
+          0.3308365968336542,
+          0.32749027980379314,
+          0.32617590479103914,
+          0.32307553272649464,
+          0.32476754977042416,
+          0.32146687450179134,
+          0.3253154852160488,
+          0.3207616511884942,
+          0.3204912627030568,
+          0.322354605413345,
+          0.32132958404989126,
+          0.31781854504562285,
+          0.31860598959118486,
+          0.3186673956750387,
+          0.31869496703147887,
+          0.319653471765748,
+          0.3173628083481846
+        ],
+        "validation_accuracy": [
+          0.8442771084337349,
+          0.8485542168674699,
+          0.85125,
+          0.8531927710843373,
+          0.8531400602409639,
+          0.8545105421686747,
+          0.8561671686746988,
+          0.8560617469879518,
+          0.8575828313253012,
+          0.8558207831325301,
+          0.8576656626506024,
+          0.8574397590361446,
+          0.8569954819277108,
+          0.8572364457831325,
+          0.8588930722891567,
+          0.8585316265060241,
+          0.8585240963855422,
+          0.8583810240963855,
+          0.8583810240963855,
+          0.8593674698795181
+        ]
+      }
+    },
+    {
+      "task": "qg_vs_wzt",
+      "model": "QKeras fixed b7",
+      "architecture": "64-32-32",
+      "base_run_name": "qkeras_b7_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.38498297333717346,
+          0.3399227261543274,
+          0.33418896794319153,
+          0.3314584493637085,
+          0.32902008295059204,
+          0.3272474408149719,
+          0.32583871483802795,
+          0.3247514069080353,
+          0.3238314688205719,
+          0.32280924916267395,
+          0.32223454117774963,
+          0.321715384721756,
+          0.3212955594062805,
+          0.32057130336761475,
+          0.3199901282787323,
+          0.31972798705101013,
+          0.3194197714328766,
+          0.319282591342926,
+          0.31870102882385254,
+          0.31817740201950073
+        ],
+        "validation_loss": [
+          0.34372806549072266,
+          0.33420610427856445,
+          0.3308568000793457,
+          0.32793399691581726,
+          0.32566574215888977,
+          0.325144499540329,
+          0.32347434759140015,
+          0.3213529884815216,
+          0.3214108347892761,
+          0.32031476497650146,
+          0.31930723786354065,
+          0.32009175419807434,
+          0.32158783078193665,
+          0.31779536604881287,
+          0.3181968033313751,
+          0.317128449678421,
+          0.3172134757041931,
+          0.31763553619384766,
+          0.3174031376838684,
+          0.317192018032074
+        ],
+        "validation_accuracy": [
+          0.848237931728363,
+          0.8510993719100952,
+          0.8528313040733337,
+          0.8542771339416504,
+          0.8550376296043396,
+          0.8557454943656921,
+          0.857070803642273,
+          0.8577183485031128,
+          0.8571385741233826,
+          0.8576279878616333,
+          0.8579970002174377,
+          0.8580271005630493,
+          0.857153594493866,
+          0.8587273955345154,
+          0.8593147397041321,
+          0.8593825101852417,
+          0.859774112701416,
+          0.8585918545722961,
+          0.8592620491981506,
+          0.8593524098396301
+        ]
+      }
+    },
+    {
+      "task": "qg_vs_wzt",
+      "model": "HGQ",
+      "architecture": "64-32-32",
+      "base_run_name": "hgq_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.5794638395309448,
+          0.4995149075984955,
+          0.471992552280426,
+          0.45283281803131104,
+          0.4372568726539612,
+          0.4226864278316498,
+          0.41354987025260925,
+          0.4047257900238037,
+          0.3978424370288849,
+          0.3918016850948334,
+          0.38681963086128235,
+          0.38404759764671326,
+          0.38032034039497375,
+          0.3776923716068268,
+          0.37594106793403625,
+          0.37336862087249756,
+          0.37241432070732117,
+          0.3710806965827942,
+          0.37007585167884827,
+          0.36976805329322815
+        ],
+        "validation_loss": [
+          0.5129285454750061,
+          0.485073447227478,
+          0.4570404291152954,
+          0.44416379928588867,
+          0.42687422037124634,
+          0.4168106019496918,
+          0.4070279598236084,
+          0.3990899920463562,
+          0.3959355354309082,
+          0.38639816641807556,
+          0.38324087858200073,
+          0.3804289996623993,
+          0.3794359266757965,
+          0.3773525655269623,
+          0.3729691505432129,
+          0.3731825351715088,
+          0.3713408410549164,
+          0.3688877820968628,
+          0.3682687282562256,
+          0.3688774108886719
+        ],
+        "validation_accuracy": [
+          0.8369202017784119,
+          0.840105414390564,
+          0.8409638404846191,
+          0.8382078409194946,
+          0.841347873210907,
+          0.8405948877334595,
+          0.8406400680541992,
+          0.8426731824874878,
+          0.8407078385353088,
+          0.8448644280433655,
+          0.8438554406166077,
+          0.8450527191162109,
+          0.8442846536636353,
+          0.8460240960121155,
+          0.8463102579116821,
+          0.8473418951034546,
+          0.8470029830932617,
+          0.8463026881217957,
+          0.8472063541412354,
+          0.8460165858268738
+        ]
+      }
+    },
+    {
+      "task": "qg_vs_wzt",
+      "model": "QKeras binary",
+      "architecture": "64-32-32",
+      "base_run_name": "qkeras_binary_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.5216984748840332,
+          0.4763277471065521,
+          0.4380420446395874,
+          0.450590580701828,
+          0.45295462012290955,
+          0.4664648175239563,
+          0.4749651849269867,
+          0.468048095703125,
+          0.46392327547073364,
+          0.4626283347606659,
+          0.4611395001411438,
+          0.45858034491539,
+          0.45869556069374084,
+          0.4559438228607178,
+          0.4589262306690216,
+          0.4664415121078491,
+          0.45803436636924744,
+          0.44045692682266235,
+          0.4305933713912964,
+          0.42251837253570557
+        ],
+        "validation_loss": [
+          0.47630104422569275,
+          0.4374886751174927,
+          0.42970868945121765,
+          0.42797818779945374,
+          0.4197956919670105,
+          0.5628640055656433,
+          0.4290740191936493,
+          0.4831034243106842,
+          0.47519853711128235,
+          0.44279253482818604,
+          0.4859844446182251,
+          0.44428586959838867,
+          0.4334256649017334,
+          0.47496986389160156,
+          0.4540156126022339,
+          0.44920212030410767,
+          0.411244660615921,
+          0.5273645520210266,
+          0.4057661294937134,
+          0.606391429901123
+        ],
+        "validation_accuracy": [
+          0.7804819345474243,
+          0.8065587282180786,
+          0.8121837377548218,
+          0.8117620348930359,
+          0.8191566467285156,
+          0.6233885288238525,
+          0.8234487771987915,
+          0.7070331573486328,
+          0.6842620372772217,
+          0.8065738081932068,
+          0.7013779878616333,
+          0.8167620301246643,
+          0.8221385478973389,
+          0.6965436935424805,
+          0.7085767984390259,
+          0.710737943649292,
+          0.8302936553955078,
+          0.7043825387954712,
+          0.8296084403991699,
+          0.6696385741233826
+        ]
+      }
+    },
+    {
+      "task": "qg_vs_wzt",
+      "model": "QKeras ternary",
+      "architecture": "64-32-32",
+      "base_run_name": "qkeras_ternary_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.5069424510002136,
+          0.43071070313453674,
+          0.4106284976005554,
+          0.4044288098812103,
+          0.39873233437538147,
+          0.39418143033981323,
+          0.38828837871551514,
+          0.38621237874031067,
+          0.3864026367664337,
+          0.38453778624534607,
+          0.38307642936706543,
+          0.38085174560546875,
+          0.3807433247566223,
+          0.38187462091445923,
+          0.38212111592292786,
+          0.37963375449180603,
+          0.3780084252357483,
+          0.37922993302345276,
+          0.37767475843429565,
+          0.3784138560295105
+        ],
+        "validation_loss": [
+          0.4473908245563507,
+          0.42179015278816223,
+          0.410889208316803,
+          0.39301708340644836,
+          0.3967261016368866,
+          0.3876209855079651,
+          0.38356441259384155,
+          0.37936627864837646,
+          0.378395140171051,
+          0.37751269340515137,
+          0.376288503408432,
+          0.37521377205848694,
+          0.37917718291282654,
+          0.3781893253326416,
+          0.37485405802726746,
+          0.37239906191825867,
+          0.37574928998947144,
+          0.3734791874885559,
+          0.37197431921958923,
+          0.3721894919872284
+        ],
+        "validation_accuracy": [
+          0.8051430583000183,
+          0.8117470145225525,
+          0.8251355290412903,
+          0.8309939503669739,
+          0.8278012275695801,
+          0.8275677561759949,
+          0.8276807069778442,
+          0.8318147659301758,
+          0.8322439789772034,
+          0.831250011920929,
+          0.8334563374519348,
+          0.8370707631111145,
+          0.8356325030326843,
+          0.8343448638916016,
+          0.834977388381958,
+          0.8369578123092651,
+          0.8352786302566528,
+          0.8380195498466492,
+          0.8369578123092651,
+          0.8394502997398376
+        ]
+      }
+    },
+    {
+      "task": "qg_vs_wzt",
+      "model": "BitNet binary",
+      "architecture": "64-32-32",
+      "base_run_name": "bitnet_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.43671435883246273,
+          0.3751976467040648,
+          0.3677845228723733,
+          0.36495935543473945,
+          0.36348291866750604,
+          0.3624621149430792,
+          0.3622429727071739,
+          0.3619914531133261,
+          0.36292470012802674,
+          0.36157674721924654,
+          0.3611705104414239,
+          0.3605260867957609,
+          0.3637820553492351,
+          0.3618357788367444,
+          0.36094552702214344,
+          0.36170128351234526,
+          0.36111808851540805,
+          0.3619331898603095,
+          0.36057445136897537,
+          0.3621456307675465
+        ],
+        "validation_loss": [
+          0.37883107892001966,
+          0.36661255078143384,
+          0.365314378120813,
+          0.3643823051739888,
+          0.3700930528181145,
+          0.3630267254272139,
+          0.3552454514532204,
+          0.36627673535461885,
+          0.35810477702014415,
+          0.3592199698557337,
+          0.35211687096630234,
+          0.3539019023510347,
+          0.36244228907378323,
+          0.3666056435797588,
+          0.35889785634465965,
+          0.3730613655498229,
+          0.3593004472571683,
+          0.3652436816261475,
+          0.3604528788486159,
+          0.3534190039462354
+        ],
+        "validation_accuracy": [
+          0.8360090361445783,
+          0.83875,
+          0.8393072289156627,
+          0.8412876506024096,
+          0.8392243975903615,
+          0.8392996987951807,
+          0.8424246987951807,
+          0.8392093373493976,
+          0.844058734939759,
+          0.8433132530120482,
+          0.8448042168674699,
+          0.8431551204819278,
+          0.8399322289156627,
+          0.8413253012048193,
+          0.8415888554216867,
+          0.8364307228915663,
+          0.8416039156626506,
+          0.8396234939759036,
+          0.8398343373493976,
+          0.8431701807228915
+        ]
+      }
+    },
+    {
+      "task": "qg_vs_wzt",
+      "model": "BitNet-1.58",
+      "architecture": "64-32-32",
+      "base_run_name": "bit158_64_32_32",
+      "seed": 42,
+      "history": {
+        "train_loss": [
+          0.4346256791539939,
+          0.36612144026411586,
+          0.36116610175155733,
+          0.35657181630651635,
+          0.3549142215338098,
+          0.3536304800338056,
+          0.35160384116402593,
+          0.3509026409488126,
+          0.349505103524909,
+          0.3490546223628952,
+          0.34952570752925183,
+          0.3482583031453282,
+          0.34733110225344277,
+          0.3467480192270624,
+          0.3452747857283397,
+          0.3463346015976136,
+          0.3451685855474817,
+          0.34439141633998915,
+          0.34396675622606854,
+          0.34525496274591927
+        ],
+        "validation_loss": [
+          0.3686390134943537,
+          0.3602210548412369,
+          0.36082342669188255,
+          0.3584601133128247,
+          0.3563611419373248,
+          0.34823203022221483,
+          0.3479399671037513,
+          0.34511240730802695,
+          0.3466545417653509,
+          0.352049827001181,
+          0.34643021786069295,
+          0.3438648545742035,
+          0.34752290537558406,
+          0.33950446900114956,
+          0.34111932013408247,
+          0.3429784130906484,
+          0.34246907283024614,
+          0.33779480945633117,
+          0.3490791296671672,
+          0.3418787889020989
+        ],
+        "validation_accuracy": [
+          0.8395933734939759,
+          0.841566265060241,
+          0.841882530120482,
+          0.8444653614457831,
+          0.8415888554216867,
+          0.8455722891566265,
+          0.8451882530120481,
+          0.8458810240963855,
+          0.8462198795180723,
+          0.8435316265060241,
+          0.8456701807228916,
+          0.8457003012048193,
+          0.8456927710843374,
+          0.8485240963855422,
+          0.8475,
+          0.8491189759036144,
+          0.8476355421686746,
+          0.8494653614457831,
+          0.8456927710843374,
+          0.847921686746988
+        ]
+      }
+    }
+  ]
+}

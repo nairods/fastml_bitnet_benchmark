@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from hardware_benchmark.native import export_pytorch_hls
+from benchmark import artifact_path
 
 
 def backend(config: dict) -> str:
@@ -47,10 +48,11 @@ def main() -> int:
 
     protocol = json.loads((ROOT / "configs" / "benchmark.json").read_text(encoding="utf-8"))
     hardware = protocol["hardware"]
-    output = args.output or ROOT / "hls_projects" / run_name / "native"
+    profile = config.get("benchmark_profile")
+    output = args.output or ROOT / "hls_projects" / profile / run_name / "native"
     if selected_backend == "pytorch":
         result = export_pytorch_hls(
-            ROOT / "models" / f"{run_name}.pt",
+            artifact_path(config, "models", f"{run_name}.pt"),
             output,
             hardware["part"],
             hardware["clock_period_ns"],
@@ -66,8 +68,10 @@ def main() -> int:
         selected_backend,
         "--run-name",
         run_name,
+        "--config",
+        str(config_path),
         "--weights",
-        str(ROOT / "models" / f"{run_name}.weights.h5"),
+        str(artifact_path(config, "models", f"{run_name}.weights.h5")),
         "--output",
         str(output),
         "--root",

@@ -48,6 +48,7 @@ def synthesize(
     run_name: str,
     project_dir: Path,
     variant: str,
+    profile: str | None,
     allow_unverified_license: bool,
 ) -> dict:
     preflight = run_preflight()
@@ -136,7 +137,7 @@ def synthesize(
         "log": str(log_path.relative_to(ROOT) if log_path.is_relative_to(ROOT) else log_path),
     }
     if completed.returncode:
-        result_dir = ROOT / "results" / "synthesis" / f"{run_name}_{variant}"
+        result_dir = ROOT / "results" / profile / "synthesis" / f"{run_name}_{variant}"
         result = {
             **status,
             "synthesis_status": "failed",
@@ -149,7 +150,7 @@ def synthesize(
 
     xml = _find_report(project_dir, project_name)
     report = parse_csynth_xml(xml)
-    result_dir = ROOT / "results" / "synthesis" / f"{run_name}_{variant}"
+    result_dir = ROOT / "results" / profile / "synthesis" / f"{run_name}_{variant}"
     result_dir.mkdir(parents=True, exist_ok=True)
     copied_xml = result_dir / f"{run_name}_{variant}_csynth.xml"
     shutil.copy2(xml, copied_xml)
@@ -159,7 +160,7 @@ def synthesize(
         copied_rpt = result_dir / f"{run_name}_{variant}_csynth.rpt"
         shutil.copy2(rpt, copied_rpt)
 
-    run_config_path = ROOT / "logs" / "run_configs" / f"{run_name}.json"
+    run_config_path = ROOT / "logs" / profile / "run_configs" / f"{run_name}.json"
     run_config = (
         json.loads(run_config_path.read_text(encoding="utf-8"))
         if run_config_path.exists()
@@ -221,6 +222,7 @@ def main() -> None:
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--project-dir", type=Path, required=True)
     parser.add_argument("--variant", default="hls4ml_latency_rf1")
+    parser.add_argument("--profile", choices=("20-epochs", "200-epochs"), required=True)
     parser.add_argument("--allow-unverified-license", action="store_true")
     args = parser.parse_args()
     print(
@@ -229,6 +231,7 @@ def main() -> None:
                 args.run_name,
                 args.project_dir,
                 args.variant,
+                args.profile,
                 args.allow_unverified_license,
             ),
             indent=2,

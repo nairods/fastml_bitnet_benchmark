@@ -4,5 +4,5 @@ channels:
 dependencies:
   - python=3.10
   - pip
-  - numpy
-  - matplotlib
+  - numpy=2.4.4
+  - matplotlib=3.10.8

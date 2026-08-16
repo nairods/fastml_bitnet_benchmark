@@ -1,6 +1,6 @@
 import argparse
 
-from benchmark import ROOT, load_config, load_dataset
+from benchmark import artifact_path, load_config, load_dataset
 from hgq_benchmark import build_hgq_model, evaluate_hgq
 from qkeras_benchmark import set_qkeras_seed
 
@@ -10,7 +10,7 @@ def main():
     parser.add_argument("--config", required=True)
     args = parser.parse_args()
     config = load_config(args.config)
-    set_qkeras_seed(config["seed"])
+    set_qkeras_seed(config["seed"], config["training"].get("device", "cpu"))
     arrays = load_dataset(config)
     output_dim = int(
         config.get("model", {}).get(
@@ -18,7 +18,7 @@ def main():
         )
     )
     model = build_hgq_model(config, arrays["x_train"].shape[1], output_dim)
-    model_path = ROOT / "models" / f"{config['run_name']}.weights.h5"
+    model_path = artifact_path(config, "models", f"{config['run_name']}.weights.h5")
     model.load_weights(model_path)
     result = evaluate_hgq(model, arrays, config, model_path)
     print(

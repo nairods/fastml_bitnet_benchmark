@@ -2,7 +2,7 @@ import argparse
 import json
 import pickle
 
-from benchmark import ROOT, ensure_output_dirs, load_config, load_dataset, set_seed
+from benchmark import artifact_path, ensure_output_dirs, load_config, load_dataset, set_seed
 
 
 def build_classifier(config, class_count):
@@ -44,7 +44,7 @@ def main():
     args = parser.parse_args()
 
     config = load_config(args.config)
-    ensure_output_dirs()
+    ensure_output_dirs(config)
     set_seed(config["seed"])
     arrays = load_dataset(config)
     class_count = len(arrays["metadata"]["class_names"])
@@ -68,11 +68,11 @@ def main():
         "metadata": arrays["metadata"],
         "history": history,
     }
-    model_path = ROOT / "models" / f"{config['run_name']}.pkl"
+    model_path = artifact_path(config, "models", f"{config['run_name']}.pkl")
     with open(model_path, "wb") as handle:
         pickle.dump(payload, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open(
-        ROOT / "logs" / f"{config['run_name']}_history.json",
+        artifact_path(config, "logs", f"{config['run_name']}_history.json"),
         "w",
         encoding="utf-8",
     ) as handle:

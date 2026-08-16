@@ -1,4 +1,8 @@
--r requirements.txt
-scikit-learn
-torch
-xgboost
+matplotlib==3.10.8
+numpy==1.26.4
+scikit-learn==1.7.2
+torch==2.5.1
+xgboost==3.2.0
+hls4ml==1.2.0
+conifer==1.8
+onnx==1.17.0

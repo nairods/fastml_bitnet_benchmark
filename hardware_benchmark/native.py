@@ -35,6 +35,13 @@ def export_pytorch_hls(checkpoint_path: Path, output_dir: Path, part: str, clock
         default_precision="ap_fixed<16,5,AP_RND,AP_SAT>",
         default_reuse_factor=1,
     )
+    config["Model"]["Strategy"] = "Latency"
+    config["Model"]["ReuseFactor"] = 1
+    for layer in config.get("LayerName", {}).values():
+        if "ReuseFactor" in layer:
+            layer["ReuseFactor"] = 1
+        if "Strategy" in layer:
+            layer["Strategy"] = "Latency"
     hls_model = hls4ml.converters.convert_from_pytorch_model(
         model,
         output_dir=str(output_dir),

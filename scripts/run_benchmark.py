@@ -45,7 +45,14 @@ def run_base_name(protocol: dict, task: str, model_id: str, architecture: str) -
     return prefix + model_definition(protocol, model_id)["base_names"][architecture]
 
 
-def build_run_config(protocol: dict, task: str, model_id: str, architecture: str, seed: int) -> dict:
+def build_run_config(
+    protocol: dict,
+    profile: str,
+    task: str,
+    model_id: str,
+    architecture: str,
+    seed: int,
+) -> dict:
     model_spec = model_definition(protocol, model_id)
     task_spec = protocol["tasks"][task]
     binary = task_spec["output"] == "binary_sigmoid"
@@ -84,28 +91,22 @@ def build_run_config(protocol: dict, task: str, model_id: str, architecture: str
             "n_jobs": 1,
         }
 
+    profile_spec = protocol["training_profiles"][profile]
     training = {
-        "epochs": 20,
-        "batch_size": 1024,
-        "learning_rate": 0.001,
-        "weight_decay": 0.0,
-        "device": "cpu",
+        **profile_spec["defaults"],
+        **profile_spec.get("model_overrides", {}).get(model_id, {}),
+        "selection_metric": profile_spec["selection_metric"],
+        "selection_mode": profile_spec["selection_mode"],
+        "early_stopping": profile_spec["early_stopping"],
     }
-    if model_id == "hgq":
-        training = {
-            "epochs": 200,
-            "batch_size": 16384,
-            "learning_rate": 0.02,
-            "cosine_decay_steps": 200,
-            "device": "cpu",
-        }
-    elif model_id == "xgboost_bdt":
+    if model_id == "xgboost_bdt":
         training = {"device": "cpu"}
 
     split = protocol["dataset"]["split"]
     return {
         "run_name": f"{base_name}__seed{seed}",
         "base_run_name": base_name,
+        "benchmark_profile": profile,
         "seed": seed,
         "dataset": {
             "id": protocol["dataset"]["openml_id"],
@@ -137,15 +138,20 @@ def stage_script(backend: str, stage: str) -> str:
 
 def artifact_path(config: dict, backend: str, stage: str) -> Path:
     run_name = config["run_name"]
+    profile = config["benchmark_profile"]
     if stage == "train":
-        suffix = ".pkl" if backend == "xgboost" else ".weights.h5" if backend in {"qkeras", "hgq"} else ".pt"
-        return ROOT / "models" / f"{run_name}{suffix}"
-    return ROOT / "results" / f"{run_name}_{BACKEND_SUFFIX[backend]}.json"
+        return ROOT / "logs" / profile / f"{run_name}_history.json"
+    return ROOT / "results" / profile / "raw" / f"{run_name}_{BACKEND_SUFFIX[backend]}.json"
 
 
 def main() -> int:
     protocol = read_config()
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--profile",
+        choices=tuple(protocol["training_profiles"]),
+        default=protocol["default_training_profile"],
+    )
     parser.add_argument("--task", choices=tuple(protocol["tasks"]), required=True)
     model_ids = tuple(model["id"] for model in protocol["models"])
     parser.add_argument("--models", nargs="+", choices=model_ids, default=None)
@@ -167,17 +173,17 @@ def main() -> int:
     if args.dry_run:
         for model_id, architecture in combinations:
             for seed in args.seeds:
-                config = build_run_config(protocol, args.task, model_id, architecture, seed)
+                config = build_run_config(protocol, args.profile, args.task, model_id, architecture, seed)
                 print(config["run_name"])
         return 0
 
-    run_config_dir = ROOT / "logs" / "run_configs"
+    run_config_dir = ROOT / "logs" / args.profile / "run_configs"
     run_config_dir.mkdir(parents=True, exist_ok=True)
     failures = []
     for model_id, architecture in combinations:
         backend = model_definition(protocol, model_id)["backend"]
         for seed in args.seeds:
-            config = build_run_config(protocol, args.task, model_id, architecture, seed)
+            config = build_run_config(protocol, args.profile, args.task, model_id, architecture, seed)
             path = run_config_dir / f"{config['run_name']}.json"
             path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
             for stage in args.stages:

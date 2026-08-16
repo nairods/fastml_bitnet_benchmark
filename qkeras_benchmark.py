@@ -5,6 +5,7 @@ import numpy as np
 
 from benchmark import (
     ROOT,
+    artifact_path,
     compute_metrics,
     result_record,
     save_results,
@@ -12,9 +13,12 @@ from benchmark import (
 )
 
 
-def set_qkeras_seed(seed):
+def set_qkeras_seed(seed, device="cpu"):
     import tensorflow as tf
 
+    if device == "cpu":
+        tf.config.set_visible_devices([], "GPU")
+    tf.config.experimental.enable_op_determinism()
     random.seed(seed)
     np.random.seed(seed)
     tf.keras.utils.set_random_seed(seed)
@@ -76,10 +80,35 @@ def build_qkeras_model(config, input_dim, output_dim):
     return model
 
 
+def load_qkeras_weights(model, path):
+    """Restore QDense weights independent of saved layer-name conventions."""
+    import h5py
+    from qkeras import QDense
+
+    dense_layers = [layer for layer in model.layers if isinstance(layer, QDense)]
+    with h5py.File(path, "r") as handle:
+        dependencies = handle["_layer_checkpoint_dependencies"]
+        groups = [name for name in dependencies if name.startswith("q_dense")]
+        groups.sort(
+            key=lambda name: int(name.rsplit("_", 1)[-1])
+            if name.rsplit("_", 1)[-1].isdigit()
+            else 0
+        )
+        if len(groups) != len(dense_layers):
+            raise ValueError(f"Expected {len(dense_layers)} QDense groups, found {len(groups)}")
+        for layer, group_name in zip(dense_layers, groups):
+            values = dependencies[group_name]["vars"]
+            layer.set_weights([values["0"][()], values["1"][()]])
+
+
 def train_qkeras(model, arrays, config, extra_callbacks=None):
     import tensorflow as tf
 
     training = config["training"]
+    if training.get("optimizer", "adam") != "adam":
+        raise ValueError("QKeras benchmark profiles require the Adam optimizer")
+    if training.get("schedule", "constant") != "constant":
+        raise ValueError("QKeras benchmark profiles currently support only a constant learning rate")
     binary = uses_binary_sigmoid(config)
     if binary:
         loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
@@ -99,7 +128,8 @@ def train_qkeras(model, arrays, config, extra_callbacks=None):
         loss=loss,
         metrics=metrics,
     )
-    checkpoint_path = ROOT / "models" / f"{config['run_name']}.weights.h5"
+    checkpoint_path = artifact_path(config, "models", f"{config['run_name']}.weights.h5")
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
             checkpoint_path,
@@ -115,7 +145,7 @@ def train_qkeras(model, arrays, config, extra_callbacks=None):
         validation_data=(arrays["x_validation"], y_validation),
         epochs=training["epochs"],
         batch_size=training["batch_size"],
-        shuffle=True,
+        shuffle=bool(training.get("shuffle", True)),
         callbacks=callbacks,
         verbose=2,
     ).history
@@ -124,6 +154,9 @@ def train_qkeras(model, arrays, config, extra_callbacks=None):
         "train_loss": history["loss"],
         "validation_loss": history["val_loss"],
         "validation_accuracy": history["val_accuracy"],
+        "selected_epoch": int(np.argmin(history["val_loss"])) + 1,
+        "selection_metric": "validation_loss",
+        "max_epochs": int(training["epochs"]),
     }
     return normalized, checkpoint_path
 

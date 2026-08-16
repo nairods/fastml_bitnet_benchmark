@@ -23,7 +23,7 @@ def main():
     args = parser.parse_args()
 
     config = load_config(args.config)
-    set_seed(config["seed"])
+    set_seed(config["seed"], config["training"].get("num_threads", 16))
     arrays = load_dataset(config)
     device = select_device(config["training"].get("device", "auto"))
     model, _, model_path = load_checkpoint(config, device)

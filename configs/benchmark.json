@@ -32,6 +32,63 @@
     }
   },
   "model_seeds": [42, 43, 44],
+  "default_training_profile": "20-epochs",
+  "training_profiles": {
+    "20-epochs": {
+      "description": "Fixed 20-epoch comparison; select the minimum validation-loss checkpoint.",
+      "selection_metric": "validation_loss",
+      "selection_mode": "min",
+      "early_stopping": false,
+      "defaults": {
+        "epochs": 20,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0,
+        "optimizer": "adam",
+        "schedule": "constant",
+        "shuffle": true,
+        "device": "cpu",
+        "num_threads": 16
+      },
+      "model_overrides": {
+        "hgq": {
+          "batch_size": 16384,
+          "learning_rate": 0.02,
+          "cosine_decay_steps": 20,
+          "weight_decay": 0.0,
+          "schedule": "cosine_decay",
+          "device": "cpu"
+        }
+      }
+    },
+    "200-epochs": {
+      "description": "Fixed 200-epoch comparison; select the minimum validation-loss checkpoint.",
+      "selection_metric": "validation_loss",
+      "selection_mode": "min",
+      "early_stopping": false,
+      "defaults": {
+        "epochs": 200,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0,
+        "optimizer": "adam",
+        "schedule": "constant",
+        "shuffle": true,
+        "device": "cpu",
+        "num_threads": 16
+      },
+      "model_overrides": {
+        "hgq": {
+          "batch_size": 16384,
+          "learning_rate": 0.02,
+          "cosine_decay_steps": 200,
+          "weight_decay": 0.0,
+          "schedule": "cosine_decay",
+          "device": "cpu"
+        }
+      }
+    }
+  },
   "architectures": {
     "standard": [64, 32, 32],
     "wide": [128, 32],
@@ -48,7 +105,7 @@
     {"id": "qkeras_ternary", "display_name": "QKeras ternary", "backend": "qkeras", "runner_model": "qkeras_mlp", "base_names": {"standard": "qkeras_ternary_64_32_32", "wide": "qkeras_ternary_128_32"}, "multiclass_architectures": ["standard"], "weight_quantizer": "ternary", "activation_bits": 7},
     {"id": "bitnet_binary", "display_name": "BitNet binary", "backend": "pytorch", "runner_model": "bitnet_mlp", "base_names": {"standard": "bitnet_64_32_32", "wide": "bitnet_128_32"}, "multiclass_architectures": ["standard", "wide"], "weight_quantizer": "binary", "activation_bits": 8, "fractional_bits": 7},
     {"id": "bitnet_158", "display_name": "BitNet-1.58", "backend": "pytorch", "runner_model": "bit158_mlp", "base_names": {"standard": "bit158_64_32_32", "wide": "bit158_128_32"}, "multiclass_architectures": ["standard", "wide"], "weight_quantizer": "ternary", "activation_bits": 8, "fractional_bits": 7},
-    {"id": "xgboost_bdt", "display_name": "XGBoost BDT", "backend": "xgboost", "runner_model": "xgboost_bdt", "base_names": {"bdt": "xgboost_bdt_d4_100"}, "multiclass_architectures": ["bdt"]}
+    {"id": "xgboost_bdt", "display_name": "XGBoost BDT", "backend": "xgboost", "runner_model": "xgboost_bdt", "base_names": {"bdt": "xgboost_bdt_d4_100"}, "multiclass_architectures": ["bdt"], "multiclass_synthesis_seeds": [42]}
   ],
   "hardware": {
     "part": "xcvu13p-flga2577-2-e",
@@ -58,9 +115,7 @@
     "result_level": "HLS C-synthesis",
     "implementations": {
       "hls4ml_latency_rf1": "Stock hls4ml, latency strategy, reuse factor 1",
-      "hls4ml_patched_bitnet_latency_rf1": "hls4ml-generated binary BitNet project with architecture-independent patched add/subtract kernels",
-      "custom_hls_bitnet_sigmoid_rf1": "Custom BitNet HLS implementation including the binary sigmoid endpoint",
-      "custom_hls_bitnet_logits_rf1": "Custom BitNet HLS implementation with multiclass logits output",
+      "hls4ml_patched_bitnet_latency_rf1": "hls4ml-generated BitNet/BitNet-1.58 project with architecture- and output-independent patched add/subtract/skip kernels",
       "conifer_unrolled": "Conifer fully unrolled BDT implementation"
     }
   }

@@ -1,9 +1,10 @@
 import argparse
 
-from benchmark import ROOT, load_config, load_dataset
+from benchmark import artifact_path, load_config, load_dataset
 from qkeras_benchmark import (
     build_qkeras_model,
     evaluate_qkeras,
+    load_qkeras_weights,
     set_qkeras_seed,
 )
 
@@ -13,7 +14,7 @@ def main():
     parser.add_argument("--config", required=True)
     args = parser.parse_args()
     config = load_config(args.config)
-    set_qkeras_seed(config["seed"])
+    set_qkeras_seed(config["seed"], config["training"].get("device", "cpu"))
     arrays = load_dataset(config)
     output_dim = int(
         config.get("model", {}).get(
@@ -21,8 +22,8 @@ def main():
         )
     )
     model = build_qkeras_model(config, arrays["x_train"].shape[1], output_dim)
-    model_path = ROOT / "models" / f"{config['run_name']}.weights.h5"
-    model.load_weights(model_path)
+    model_path = artifact_path(config, "models", f"{config['run_name']}.weights.h5")
+    load_qkeras_weights(model, model_path)
     result = evaluate_qkeras(model, arrays, config, model_path)
     print(
         f"accuracy={result['accuracy']:.5f} "

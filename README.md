@@ -5,265 +5,237 @@ Implementation-Aware Benchmark of Low-Precision FPGA Inference for Jet
 Classification**.
 
 This repository compares predictive performance and FPGA HLS C-synthesis
-estimates for dense, quantized, BitNet, and boosted-tree classifiers on the
-OpenML `hls4ml_lhc_jets_hlf` dataset. It is organized around two reproducibility
-levels:
+estimates for dense, quantized, BitNet, and boosted-tree classifiers on OpenML
+42468. Two training profiles are kept independently:
 
-1. A lightweight, deterministic path regenerates every committed result table,
-   Pareto plot, and training plot from compact per-seed records.
-2. An optional research path downloads OpenML 42468 and retrains selected models.
-   Generic hls4ml and Conifer synthesis helpers are included for extension work;
-   vendor HLS tools and compatible backend environments are required.
+| Profile | Neural training budget | Checkpoint used for evaluation and synthesis |
+| --- | ---: | --- |
+| `20-epochs` | exactly 20 epochs | lowest validation loss among epochs 1-20 |
+| `200-epochs` | exactly 200 epochs | lowest validation loss among epochs 1-200 |
 
-## Reproduce the public artifacts
+Training never stops early. The test split is evaluated only after checkpoint
+selection and is never used to select an epoch or tune a model.
 
-Create the small plotting environment and regenerate all public outputs:
+## Reproduce tables and plots
+
+Create the lightweight artifact environment:
 
 ```bash
 conda env create -f environment.yml
 conda activate fastml-bitnet-benchmark
-make reproduce
-make check
 ```
 
-`make reproduce` writes the three CSV tables under `results/`, the six Pareto
-plots, and the seven seed-42 training plots under `plots/`. `make check`
-regenerates everything in a temporary directory and verifies that the committed
-files match byte for byte.
+Regenerate and byte-check either committed profile:
 
-The source for this command is
-[`data/benchmark_records.json`](data/benchmark_records.json). It contains only
-the per-seed metrics, selected C-synthesis estimates, and training histories
-needed for the public artifacts. It does not contain checkpoints, per-event
-predictions, generated HLS projects, or raw OpenML data.
+```bash
+make reproduce PROFILE=20-epochs
+make check PROFILE=20-epochs
 
-## Repository guide
+make reproduce PROFILE=200-epochs
+make check PROFILE=200-epochs
+```
 
-- [`configs/benchmark.json`](configs/benchmark.json) defines the dataset, tasks,
-  model families, architectures, seeds, hardware target, and public
-  implementation labels.
-- [`data/splits/`](data/splits/) contains fixed task-specific train,
-  validation, and test indices.
-- [`scripts/generate_benchmark_artifacts.py`](scripts/generate_benchmark_artifacts.py)
-  is the single table and plot generator.
-- [`scripts/run_benchmark.py`](scripts/run_benchmark.py) is the configurable
-  training and evaluation entry point.
-- [`benchmark.py`](benchmark.py) implements dataset loading, preprocessing,
-  training utilities, and metrics. [`model_registry.py`](model_registry.py)
-  contains only the published model families.
-- The root `train_*` and `test_*` files, plus `torchDNN.py`, are backend
-  adapters invoked by `scripts/run_benchmark.py`; they are not separate user
-  workflows.
-- `hardware_benchmark/` and the synthesis scripts contain reusable helpers for
-  stock hls4ml, patched binary BitNet, and Conifer BDT projects.
+The generator reads one compact source record per profile:
+
+- [`data/20-epochs/benchmark_records.json`](data/20-epochs/benchmark_records.json)
+- [`data/200-epochs/benchmark_records.json`](data/200-epochs/benchmark_records.json)
+
+It writes three summary tables under `results/<profile>/` and the six Pareto
+plots plus seven representative seed-42 learning curves under
+`plots/<profile>/`. The compact records contain per-seed test metrics,
+checkpoint-selection metadata, synthesis estimates, and the histories needed
+for the public plots. Raw OpenML arrays and generated HLS projects are not
+committed.
+
+## Results
+
+### 20 epochs
+
+- [q/g vs W/Z/top table](results/20-epochs/benchmark_main_binary_table.csv)
+- [q/g vs top table](results/20-epochs/benchmark_secondary_top_table.csv)
+- [multiclass table](results/20-epochs/benchmark_multiclass_summary.csv)
+- [q/g vs W/Z/top AUC vs LUT](plots/20-epochs/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png)
+- [q/g vs W/Z/top AUC vs latency](plots/20-epochs/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png)
+- [q/g vs top AUC vs LUT](plots/20-epochs/benchmark_pareto_auc_vs_lut_qg_vs_top.png)
+- [q/g vs top AUC vs latency](plots/20-epochs/benchmark_pareto_auc_vs_latency_qg_vs_top.png)
+- [multiclass macro AUC vs LUT](plots/20-epochs/benchmark_pareto_auc_vs_lut_multiclass.png)
+- [multiclass macro AUC vs latency](plots/20-epochs/benchmark_pareto_auc_vs_latency_multiclass.png)
+
+### 200 epochs
+
+- [q/g vs W/Z/top table](results/200-epochs/benchmark_main_binary_table.csv)
+- [q/g vs top table](results/200-epochs/benchmark_secondary_top_table.csv)
+- [multiclass table](results/200-epochs/benchmark_multiclass_summary.csv)
+- [q/g vs W/Z/top AUC vs LUT](plots/200-epochs/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png)
+- [q/g vs W/Z/top AUC vs latency](plots/200-epochs/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png)
+- [q/g vs top AUC vs LUT](plots/200-epochs/benchmark_pareto_auc_vs_lut_qg_vs_top.png)
+- [q/g vs top AUC vs latency](plots/200-epochs/benchmark_pareto_auc_vs_latency_qg_vs_top.png)
+- [multiclass macro AUC vs LUT](plots/200-epochs/benchmark_pareto_auc_vs_lut_multiclass.png)
+- [multiclass macro AUC vs latency](plots/200-epochs/benchmark_pareto_auc_vs_latency_multiclass.png)
+
+Plot colors identify model families and markers identify architectures. Error
+bars are sample standard deviations over the available model seeds.
 
 ## Benchmark protocol
 
 ### Dataset and tasks
 
-The benchmark uses [OpenML dataset 42468](https://www.openml.org/d/42468):
-approximately 830,000 jets, 16 high-level observables, and five labels (`g`,
-`q`, `W`, `Z`, `top`). The training workflow downloads it on demand with
-`sklearn.datasets.fetch_openml`.
+The workflow downloads the OpenML `hls4ml_lhc_jets_hlf` dataset (ID 42468) on
+demand. It contains approximately 830,000 jets, 16 high-level observables, and
+five labels: gluon, light quark, W, Z, and top.
 
-Three tasks are defined:
+| Task | Background | Signal/classes |
+| --- | --- | --- |
+| `qg_vs_wzt` | gluon + light quark | W + Z + top |
+| `qg_vs_top` | gluon + light quark | top; W/Z excluded |
+| `multiclass` | n/a | gluon, quark, W, Z, top |
 
-| Task | Background | Signal/classes | Coverage |
-| --- | --- | --- | --- |
-| q/g vs W/Z/top | gluon + light quark | W + Z + top | complete |
-| q/g vs top | gluon + light quark | top; W/Z excluded | complete except one partial hardware row |
-| multiclass | n/a | g, q, W, Z, top | partial seed/synthesis coverage |
+Each task has fixed stratified 64%/16%/20% train/validation/test indices under
+[`data/splits/`](data/splits/), generated with split seed 42. Each task fits
+its own `StandardScaler` on its training subset only, then applies that scaler
+to validation and test data. No committed `scaler.pkl` is loaded.
 
-Each task has its own fixed stratified 64%/16%/20% split with split seed 42.
-The loader uses the matching archive in `data/splits/`. A separate
-`StandardScaler` is fitted on that task's training subset only and then applied
-to validation and test data. No committed scaler pickle is used.
+Model seeds are 42, 43, and 44. Neural models use either a `64-32-32`
+standard hidden architecture or a `128-32` wide architecture. The multiclass
+QKeras configurations retain only the published standard architecture. The BDT
+uses exactly 100 trees with maximum depth 4.
 
-### Models
+Fairness is enforced through identical data, split indices, preprocessing,
+architectures, seed set, loss definitions, full-budget training, and
+validation-loss checkpoint selection. Optimizer settings are fixed per model
+family and are identical between profiles except for the maximum epoch count
+and HGQ schedule length:
 
-The neural models use either `16-64-32-32-output` (standard) or
-`16-128-32-output` (wide). The BDT uses 100 trees with maximum depth 4. Model
-seeds are 42, 43, and 44.
+| Models | Optimizer | Batch | Initial LR | Schedule |
+| --- | --- | ---: | ---: | --- |
+| Dense, QKeras, BitNet | Adam | 1024 | 0.001 | constant |
+| HGQ | Adam | 16384 | 0.02 | cosine decay over the full profile |
 
-The compared families are:
+PyTorch training and evaluation use 16 CPU intra-op threads. All neural models
+shuffle the training data deterministically from their model seed.
+Losses are binary cross entropy from logits for the binary tasks and sparse
+categorical cross entropy from logits for multiclass. HGQ keeps `beta=3e-6`;
+QKeras uses 7-bit ReLU activations and either 7-bit, binary, or ternary weights
+and biases. BitNet uses binary weights and BitNet-1.58 ternary weights; both use
+8-bit activations with 7 fractional bits. All quantizer widths and model
+definitions are frozen in [`configs/benchmark.json`](configs/benchmark.json).
 
-- Dense MLP
-- QKeras 7-bit fixed point
-- HGQ
-- QKeras binary
-- QKeras ternary
-- BitNet binary
-- BitNet-1.58 sparse ternary
-- XGBoost BDT
+The BDT does not have a neural epoch budget. It is independently trained for
+each task and seed with 100 boosting rounds, depth 4, learning rate 0.1,
+subsample 0.8, column subsample 0.8, histogram tree construction, and no early
+stopping. These settings are identical in both profile directories; this keeps
+the non-neural reference fixed while the neural training budget changes. The
+resulting 20- and 200-profile XGBoost boosters are byte-identical for every
+task/seed pair, so the 200-profile compact record explicitly reuses the matching
+20-profile Conifer synthesis estimate instead of synthesizing identical logic
+twice. Binary BDT synthesis covers all three seeds. Multiclass BDT synthesis is
+reported as partial with seed 42 only because fully unrolling the five-class
+ensemble is substantially more expensive; the software metrics still cover all
+three seeds.
 
-Accuracy, macro ROC AUC, and signal efficiency at 1% false-positive rate are
-computed on the fixed test subset. The fixed-FPR values in the compact records
-were computed from the original per-event predictions; those large predictions
-are not committed.
+The compared model families are Dense MLP, QKeras 7-bit, HGQ, QKeras binary,
+QKeras ternary, BitNet binary, BitNet-1.58, and XGBoost BDT. Accuracy, ROC AUC,
+and signal efficiency at 1% false-positive rate are measured on the fixed test
+subset. Multiclass uses macro one-vs-rest ROC AUC.
 
-### Hardware measurements
+### Hardware estimates
 
-All hardware values are **HLS C-synthesis estimates**, not place-and-route
+All hardware numbers are **HLS C-synthesis estimates**, not place-and-route
 results:
 
 - FPGA: AMD/Xilinx VU13P, `xcvu13p-flga2577-2-e`
 - target clock: 5 ns
 - target initiation interval: 1
 - I/O: parallel
+- synthesis tool for neural models: Vitis HLS 2023.1
 
-The implementation path is part of the result and is not uniform across model
-families:
+The `synth_variant` column identifies the implementation used for each row.
+Stock hls4ml uses latency strategy and reuse factor 1. BitNet and BitNet-1.58
+use one architecture- and output-independent hls4ml patch: binary weights map
+to add/subtract operations, ternary zero weights are skipped, binary outputs
+include the sigmoid lookup, and multiclass outputs expose logits without
+softmax. The compact record preserves the implementation boundary, tool
+version, target, and source variant for every synthesis result.
 
-| Public label | Meaning |
-| --- | --- |
-| `hls4ml_latency_rf1` | Stock hls4ml, latency strategy, reuse factor 1 |
-| `hls4ml_patched_bitnet_latency_rf1` | hls4ml-generated binary BitNet project with architecture-independent patched add/subtract kernels |
-| `custom_hls_bitnet_sigmoid_rf1` | Custom BitNet HLS path including the binary sigmoid endpoint |
-| `custom_hls_bitnet_logits_rf1` | Custom BitNet HLS path with multiclass logits output |
-| `conifer_unrolled` | Fully unrolled Conifer BDT |
+## Retrain a profile
 
-This distinction is important: the binary-task BitNet rows are patched hls4ml
-projects, while BitNet-1.58 and multiclass BitNet rows use custom kernels. Both
-binary BitNet architectures now use the same patch generator. The compact
-record keeps the original internal variant name for provenance while exposing
-stable, descriptive public labels in the CSVs. For q/g vs top, the standard
-BitNet-1.58 row has three metric seeds but only one valid sigmoid-inclusive
-synthesis record and is therefore marked `partial`.
-
-## Results
-
-The generated tables are:
-
-- [Primary q/g vs W/Z/top table](results/benchmark_main_binary_table.csv)
-- [Secondary q/g vs top table](results/benchmark_secondary_top_table.csv)
-- [Partial multiclass table](results/benchmark_multiclass_summary.csv)
-
-The generated Pareto plots are:
-
-- [Primary AUC vs LUT](plots/benchmark_pareto_auc_vs_lut_qg_vs_wzt.png)
-- [Primary AUC vs latency](plots/benchmark_pareto_auc_vs_latency_qg_vs_wzt.png)
-- [Secondary AUC vs LUT](plots/benchmark_pareto_auc_vs_lut_qg_vs_top.png)
-- [Secondary AUC vs latency](plots/benchmark_pareto_auc_vs_latency_qg_vs_top.png)
-- [Multiclass macro AUC vs LUT](plots/benchmark_pareto_auc_vs_lut_multiclass.png)
-- [Multiclass macro AUC vs latency](plots/benchmark_pareto_auc_vs_latency_multiclass.png)
-
-Colors identify model families and marker shapes identify architectures. Error
-bars show the sample standard deviation over available seeds.
-
-The retained training plots cover the standard architecture, primary task, and
-seed 42:
-
-- [Dense MLP](plots/dense_baseline_64_32_32__seed42_training.png)
-- [QKeras 7-bit](plots/qkeras_b7_64_32_32__seed42_training.png)
-- [HGQ](plots/hgq_64_32_32__seed42_training.png)
-- [QKeras binary](plots/qkeras_binary_64_32_32__seed42_training.png)
-- [QKeras ternary](plots/qkeras_ternary_64_32_32__seed42_training.png)
-- [BitNet binary](plots/bitnet_64_32_32__seed42_training.png)
-- [BitNet-1.58](plots/bit158_64_32_32__seed42_training.png)
-
-For the primary standard architecture, Dense and QKeras 7-bit reach an AUC of
-about 0.9325. BitNet-1.58 reaches 0.9232, ahead of the naive binary and ternary
-QKeras models. HGQ is the lowest-LUT neural implementation, while the unrolled
-BDT is the lowest-latency point. The exact values and seed counts are in the
-CSV tables. Under the common patched hls4ml implementation, both binary BitNet
-architectures synthesize without DSPs.
-
-## Retraining
-
-The TensorFlow requirements for QKeras and HGQ are incompatible, so they must
-be installed in separate environments. Do not install both optional requirement
-files into the same environment.
-
-For PyTorch, BitNet, and XGBoost models:
+TensorFlow/QKeras and HGQ dependency constraints require separate environments;
+see `requirements-training.txt`, `requirements-qkeras.txt`, and
+`requirements-hgq.txt`. These files also pin hls4ml 1.2.0 and, where needed,
+Conifer 1.8 and ONNX 1.17.0. The runner writes profile-local configs,
+checkpoints, histories, and raw results, so profiles cannot overwrite each
+other.
 
 ```bash
-python -m venv .venv-training
-. .venv-training/bin/activate
-python -m pip install -r requirements-training.txt
-python scripts/run_benchmark.py --task qg_vs_wzt \
+# PyTorch, BitNet, and XGBoost environment
+python scripts/run_benchmark.py --profile 200-epochs --task qg_vs_wzt \
   --models dense bitnet_binary bitnet_158 xgboost_bdt
-```
 
-For QKeras models, use a separate environment with
-`requirements-qkeras.txt`; for HGQ use another environment with
-`requirements-hgq.txt`. Examples:
-
-```bash
-python scripts/run_benchmark.py --task qg_vs_wzt \
+# QKeras environment
+python scripts/run_benchmark.py --profile 200-epochs --task qg_vs_wzt \
   --models qkeras_b7 qkeras_binary qkeras_ternary
 
-python scripts/run_benchmark.py --task qg_vs_wzt --models hgq
+# HGQ environment
+python scripts/run_benchmark.py --profile 200-epochs --task qg_vs_wzt \
+  --models hgq
 ```
 
-Replace the task with `qg_vs_top` or `multiclass` as needed. Use
-`--architectures`, `--seeds`, or `--stages` to select a subset. Run configs are
-written under ignored `logs/run_configs/`; checkpoints and raw per-seed outputs
-are also ignored.
+Repeat with `qg_vs_top` and `multiclass`. Use `--architectures`, `--seeds`, or
+`--stages` for a resumable subset; existing stage outputs are skipped unless
+`--force` is passed. Checkpoints are written to `models/<profile>/`, histories
+and generated run configs to ignored `logs/<profile>/`, and raw metrics to
+ignored `results/<profile>/raw/`.
 
-Hardware reruns additionally require `requirements-hardware.txt`, a compatible
-hls4ml/Conifer stack, and licensed Vivado or Vitis HLS. For example, after
-training a stock hls4ml-compatible run:
+Synthesize each selected checkpoint from the environment matching its backend:
 
 ```bash
-RUN=qkeras_b7_64_32_32__seed42
-python export_reference_predictions.py \
-  --config logs/run_configs/${RUN}.json
-python scripts/prepare_hls4ml_project.py \
-  --config logs/run_configs/${RUN}.json
-python scripts/synthesize_hls4ml_project.py \
-  --run-name ${RUN} --project-dir hls_projects/${RUN}/native
+python scripts/run_synthesis.py \
+  --config logs/200-epochs/run_configs/bit158_64_32_32__seed42.json
 ```
 
-Reference prediction export is required by the QKeras and HGQ conversion
-worker. The stock dense conversion does not require that export.
+The wrapper chooses stock hls4ml, the common patched BitNet route, or unrolled
+Conifer from the model config. It validates BitNet numerical output before
+synthesis, keeps only reports and compact results, and puts disposable project
+trees under `/tmp`. A licensed Vitis HLS 2023.1 installation is required;
+`--allow-unverified-license` only bypasses the preflight check, not licensing.
 
-For a trained binary BitNet run, generate and synthesize the public patched
-hls4ml implementation directly from its training checkpoint:
+After evaluation and synthesis, collect the raw outputs and regenerate the
+public artifacts:
 
 ```bash
-RUN=bitnet_128_32__seed42
-python scripts/synthesize_bitnet_hls4ml_patched.py \
-  --run-name ${RUN} --checkpoint models/${RUN}.pt
+python scripts/collect_benchmark_records.py --profile 200-epochs
+make reproduce PROFILE=200-epochs
+make check PROFILE=200-epochs
 ```
 
-The script exports integer weights to ignored `data/synthesis/`, discovers
-hls4ml's generated layer/config identifiers, folds cumulative BitNet scales,
-replaces binary matrix multiplications with add/subtract kernels, and fuses the
-final sigmoid lookup. It compiles and compares 256 deterministic samples before
-C-synthesis; use `--write-only` to stop after project generation and
-validation.
+The collector fails on missing per-seed metrics or expected synthesis reports.
+`--allow-missing-synthesis` is available only for explicitly partial work in
+progress.
 
-For a trained BDT, reproduce the public unrolled implementation with:
+## Repository guide
 
-```bash
-RUN=xgboost_bdt_d4_100__seed42
-python scripts/synthesize_xgboost_conifer.py \
-  --config logs/run_configs/${RUN}.json --unroll
-```
+- [`scripts/run_benchmark.py`](scripts/run_benchmark.py) expands the frozen
+  protocol into backend run configs and executes training/evaluation.
+- [`scripts/collect_benchmark_records.py`](scripts/collect_benchmark_records.py)
+  validates and collects profile-local raw outputs.
+- [`scripts/run_synthesis.py`](scripts/run_synthesis.py) dispatches one selected
+  checkpoint through its declared hardware implementation.
+- [`scripts/generate_benchmark_artifacts.py`](scripts/generate_benchmark_artifacts.py)
+  is the only public table and plotting implementation.
+- [`benchmark.py`](benchmark.py) owns task loading, split/scaler handling,
+  PyTorch training, checkpoint selection, and metrics.
+- [`model_registry.py`](model_registry.py) contains the published PyTorch model
+  definitions; the root train/test files are backend adapters used by the
+  runner.
+- `hardware_benchmark/` and the synthesis scripts provide stock hls4ml,
+  patched BitNet, and Conifer conversion/report handling.
 
-`prepare_hls4ml_project.py` deliberately rejects BitNet runs because the
-patched binary route above is separate from stock conversion. The archived
-custom BitNet-1.58 and multiclass measurements remain inspectable in
-`data/benchmark_records.json`, including implementation boundary, tool
-version, part, clock, and original source-variant identifier.
-
-## Extending the benchmark
-
-To add a model or quantization method:
-
-1. Add its public metadata, backend, architecture names, and quantization
-   settings to `configs/benchmark.json`.
-2. Register a PyTorch model in `model_registry.py`, or add a backend adapter
-   following the QKeras/HGQ/XGBoost train and evaluation scripts.
-3. Run `scripts/run_benchmark.py` on the same task splits and seeds.
-4. Add the reviewed per-seed metrics and synthesis records to
-   `data/benchmark_records.json`, preserving the output boundary and synthesis
-   implementation label.
-5. Run `make reproduce` and `make check`.
-
-The generator validates model names, architectures, base run names, seeds, and
-hardware implementation labels against the benchmark configuration before
-writing any public artifact.
+To extend the benchmark, add the model metadata and fixed hyperparameters to
+`configs/benchmark.json`, register or add its backend adapter, train it on the
+same profile/tasks/seeds, synthesize the selected checkpoint, then run the
+collector and generator. Their validation prevents an undeclared model,
+architecture, seed set, implementation label, or training profile from entering
+the public tables silently.
 
 ## License
 

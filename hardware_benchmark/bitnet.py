@@ -43,8 +43,8 @@ def load_quantized_layers(path: Path) -> list[dict]:
     return layers
 
 
-def predict_folded(layers: list[dict], values: np.ndarray) -> np.ndarray:
-    """Evaluate the cumulative-scale representation used by the patched HLS project."""
+def predict_folded_logits(layers: list[dict], values: np.ndarray) -> np.ndarray:
+    """Evaluate logits from the cumulative-scale representation used in HLS."""
     output = np.asarray(values, dtype=np.float64)
     cumulative_scale = 1.0
     for index, layer in enumerate(layers):
@@ -53,6 +53,11 @@ def predict_folded(layers: list[dict], values: np.ndarray) -> np.ndarray:
         output = output @ np.asarray(layer["weight"], dtype=np.float64).T + folded_bias
         if index != len(layers) - 1:
             output = np.maximum(output, 0.0)
-    logits = output * cumulative_scale
+    return output * cumulative_scale
+
+
+def predict_folded(layers: list[dict], values: np.ndarray) -> np.ndarray:
+    """Evaluate binary sigmoid output from the cumulative-scale representation."""
+    logits = predict_folded_logits(layers, values)
     logits = np.clip(logits, -80.0, 80.0)
     return 1.0 / (1.0 + np.exp(-logits))

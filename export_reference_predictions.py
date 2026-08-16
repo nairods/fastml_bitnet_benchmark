@@ -10,6 +10,8 @@ except ModuleNotFoundError:
 
 from benchmark import (
     ROOT,
+    artifact_dir,
+    artifact_path,
     load_checkpoint,
     load_config,
     load_dataset,
@@ -37,7 +39,7 @@ def main():
             torch.device("cpu"),
         )
     elif spec.backend == "qkeras":
-        from qkeras_benchmark import build_qkeras_model, predict_qkeras
+        from qkeras_benchmark import build_qkeras_model, load_qkeras_weights, predict_qkeras
 
         output_dim = int(
             config.get("model", {}).get(
@@ -45,7 +47,9 @@ def main():
             )
         )
         model = build_qkeras_model(config, arrays["x_train"].shape[1], output_dim)
-        model.load_weights(ROOT / "models" / f"{config['run_name']}.weights.h5")
+        load_qkeras_weights(
+            model, artifact_path(config, "models", f"{config['run_name']}.weights.h5")
+        )
         probabilities = predict_qkeras(
             model, arrays["x_test"], config["evaluation"]["batch_size"]
         )
@@ -58,14 +62,14 @@ def main():
             )
         )
         model = build_hgq_model(config, arrays["x_train"].shape[1], output_dim)
-        model.load_weights(ROOT / "models" / f"{config['run_name']}.weights.h5")
+        model.load_weights(artifact_path(config, "models", f"{config['run_name']}.weights.h5"))
         probabilities = predict_hgq(
             model, arrays["x_test"], config["evaluation"]["batch_size"]
         )
     else:
         raise ValueError(f"Unsupported backend: {spec.backend}")
 
-    output_dir = ROOT / "data" / "synthesis" / "reference_predictions"
+    output_dir = artifact_dir(config, "data") / "synthesis" / "reference_predictions"
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / f"{config['run_name']}.npy"
     np.save(output, np.asarray(probabilities, dtype=np.float32))

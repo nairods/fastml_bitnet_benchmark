@@ -20,10 +20,8 @@ from matplotlib.ticker import FuncFormatter, MultipleLocator
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE = ROOT / "data" / "benchmark_records.json"
 DEFAULT_CONFIG = ROOT / "configs" / "benchmark.json"
 SEEDS = {42, 43, 44}
-EXPECTED_MODELS = 15
 
 BINARY_FIELDS = [
     "task",
@@ -36,6 +34,9 @@ BINARY_FIELDS = [
     "auc_std",
     "signal_eff_at_1pct_fpr_mean",
     "signal_eff_at_1pct_fpr_std",
+    "selected_epoch_mean",
+    "selected_epoch_std",
+    "max_epochs",
     "synth_variant",
     "latency_cycles_mean",
     "latency_cycles_std",
@@ -59,6 +60,9 @@ MULTICLASS_FIELDS = [
     "accuracy_std",
     "macro_auc_mean",
     "macro_auc_std",
+    "selected_epoch_mean",
+    "selected_epoch_std",
+    "max_epochs",
     "synth_variant",
     "latency_cycles_mean",
     "lut_mean",
@@ -137,6 +141,10 @@ def synthesis_runs(model: dict) -> list[dict]:
     return [run["synthesis"] for run in model["runs"] if run.get("synthesis")]
 
 
+def training_values(runs: list[dict], key: str) -> list[float | int | None]:
+    return [run.get("training_selection", {}).get(key) for run in runs]
+
+
 def implementation_label(syntheses: list[dict]) -> str:
     names = list(dict.fromkeys(row["implementation"] for row in syntheses))
     return ",".join(names)
@@ -156,6 +164,9 @@ def aggregate_binary(task: str, model: dict) -> dict:
         "auc_std": fmt(stdev([run["auc"] for run in runs])),
         "signal_eff_at_1pct_fpr_mean": fmt(mean([run["signal_eff_at_1pct_fpr"] for run in runs])),
         "signal_eff_at_1pct_fpr_std": fmt(stdev([run["signal_eff_at_1pct_fpr"] for run in runs])),
+        "selected_epoch_mean": fmt(mean(training_values(runs, "selected_epoch")), 2),
+        "selected_epoch_std": fmt(stdev(training_values(runs, "selected_epoch")), 2),
+        "max_epochs": fmt(mean(training_values(runs, "max_epochs")), 0),
         "synth_variant": implementation_label(syntheses),
         "latency_cycles_mean": fmt(mean([row["latency_cycles"] for row in syntheses]), 2),
         "latency_cycles_std": fmt(stdev([row["latency_cycles"] for row in syntheses]), 2),
@@ -183,6 +194,9 @@ def aggregate_multiclass(model: dict) -> dict:
         "accuracy_std": fmt(stdev([run["accuracy"] for run in runs])),
         "macro_auc_mean": fmt(mean([run["macro_auc"] for run in runs])),
         "macro_auc_std": fmt(stdev([run["macro_auc"] for run in runs])),
+        "selected_epoch_mean": fmt(mean(training_values(runs, "selected_epoch")), 2),
+        "selected_epoch_std": fmt(stdev(training_values(runs, "selected_epoch")), 2),
+        "max_epochs": fmt(mean(training_values(runs, "max_epochs")), 0),
         "synth_variant": implementation_label(syntheses),
         "latency_cycles_mean": fmt(mean([row["latency_cycles"] for row in syntheses]), 2),
         "lut_mean": fmt(mean([row["lut"] for row in syntheses]), 1),
@@ -209,16 +223,23 @@ def expected_models(protocol: dict, task: str) -> set[tuple[str, str, str]]:
     return expected
 
 
-def validate_source(records: dict, protocol: dict) -> None:
+def validate_source(records: dict, protocol: dict, profile: str) -> None:
     if records.get("schema_version") != 1:
         raise ValueError("Unsupported benchmark record schema")
+    if records.get("training_profile") != profile:
+        raise ValueError(
+            f"Record profile {records.get('training_profile')!r} does not match {profile!r}"
+        )
+    if records.get("training_protocol") != protocol["training_profiles"][profile]:
+        raise ValueError("Record training protocol does not match configs/benchmark.json")
     tasks = records.get("tasks", {})
     if set(tasks) != {"qg_vs_wzt", "qg_vs_top", "multiclass"}:
         raise ValueError("Expected primary, secondary, and multiclass task records")
     for task in ("qg_vs_wzt", "qg_vs_top"):
         models = tasks[task]["models"]
-        if len(models) != EXPECTED_MODELS:
-            raise ValueError(f"{task}: expected {EXPECTED_MODELS} models, found {len(models)}")
+        expected_count = len(expected_models(protocol, task))
+        if len(models) != expected_count:
+            raise ValueError(f"{task}: expected {expected_count} models, found {len(models)}")
         names = [model["base_run_name"] for model in models]
         if len(names) != len(set(names)):
             raise ValueError(f"{task}: duplicate base_run_name")
@@ -384,6 +405,10 @@ def plot_training_curve(curve: dict, output: Path) -> None:
     axes[1].set_xlabel("Epoch")
     axes[1].set_ylabel("Validation accuracy")
     axes[1].grid(True, alpha=0.18)
+    tick_spacing = 2 if len(history["train_loss"]) <= 20 else 20
+    for axis in axes:
+        axis.xaxis.set_major_locator(MultipleLocator(tick_spacing))
+        axis.set_xlim(1, len(history["train_loss"]))
     figure.suptitle(f"{MODEL_LABELS.get(curve['model'], curve['model'])}, {curve['architecture']}, seed {curve['seed']}")
     figure.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -391,23 +416,46 @@ def plot_training_curve(curve: dict, output: Path) -> None:
     plt.close(figure)
 
 
-def generate(records: dict, output_root: Path) -> dict:
-    results_dir = output_root / "results"
-    plots_dir = output_root / "plots"
+def score_ylim(rows: list[dict], score_key: str, yerr_key: str) -> tuple[float, float]:
+    """Return a padded range containing scores and their error bars."""
+    extents = []
+    for row in rows:
+        score = numeric(row, score_key)
+        if score is None:
+            continue
+        error = numeric(row, yerr_key) or 0.0
+        extents.extend((score - error, score + error))
+    if not extents:
+        raise ValueError(f"No finite values available for {score_key}")
+    low, high = min(extents), max(extents)
+    padding = max(0.08 * max(high - low, 0.01), 0.0015)
+    return low - padding, high + padding
+
+
+def generate(records: dict, output_root: Path, profile: str) -> dict:
+    results_dir = output_root / "results" / profile
+    plots_dir = output_root / "plots" / profile
+    for directory, pattern in ((results_dir, "*.csv"), (plots_dir, "*.png")):
+        if directory.exists():
+            for stale in directory.glob(pattern):
+                stale.unlink()
     primary = [aggregate_binary("qg_vs_wzt", model) for model in records["tasks"]["qg_vs_wzt"]["models"]]
     secondary = [aggregate_binary("qg_vs_top", model) for model in records["tasks"]["qg_vs_top"]["models"]]
     multiclass = [aggregate_multiclass(model) for model in records["tasks"]["multiclass"]["models"]]
+    primary_ylim = score_ylim(primary, "auc_mean", "auc_std") if profile == "200-epochs" else (0.88, 0.935)
+    secondary_ylim = score_ylim(secondary, "auc_mean", "auc_std") if profile == "200-epochs" else None
+    multiclass_ylim = score_ylim(multiclass, "macro_auc_mean", "macro_auc_std") if profile == "200-epochs" else None
 
     write_csv(results_dir / TABLE_FILES[0], primary, BINARY_FIELDS)
     write_csv(results_dir / TABLE_FILES[1], secondary, BINARY_FIELDS)
     write_csv(results_dir / TABLE_FILES[2], multiclass, MULTICLASS_FIELDS)
 
-    plot_pareto(primary, "lut_mean", plots_dir / PARETO_FILES[0], "q/g vs W/Z/top: AUC vs LUT", r"LUT usage [$10^3$]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="lut_std", yerr_key="auc_std", x_formatter="k", ylim=(0.88, 0.935), model_legend_loc="lower right")
-    plot_pareto(primary, "latency_ns_mean", plots_dir / PARETO_FILES[1], "q/g vs W/Z/top: AUC vs latency", "Latency [ns]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="latency_ns_std", yerr_key="auc_std", xlim=(0, 120), ylim=(0.88, 0.935), model_legend_loc="upper right")
-    plot_pareto(secondary, "lut_mean", plots_dir / PARETO_FILES[2], "q/g vs top: AUC vs LUT", r"LUT usage [$10^3$]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="lut_std", yerr_key="auc_std", x_formatter="k", model_legend_loc="lower right")
-    plot_pareto(secondary, "latency_ns_mean", plots_dir / PARETO_FILES[3], "q/g vs top: AUC vs latency", "Latency [ns]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="latency_ns_std", yerr_key="auc_std", xlim=(0, 120), model_legend_loc="lower left")
-    plot_pareto(multiclass, "lut_mean", plots_dir / PARETO_FILES[4], "Multiclass: macro AUC vs LUT", r"LUT usage [$10^3$]", score_key="macro_auc_mean", ylabel="Macro ROC AUC", x_formatter="k", model_legend_loc="lower right")
-    plot_pareto(multiclass, "latency_ns_mean", plots_dir / PARETO_FILES[5], "Multiclass: macro AUC vs latency", "Latency [ns]", score_key="macro_auc_mean", ylabel="Macro ROC AUC", xlim=(0, 120), model_legend_loc="upper right")
+    plot_pareto(primary, "lut_mean", plots_dir / PARETO_FILES[0], "q/g vs W/Z/top: AUC vs LUT", r"LUT usage [$10^3$]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="lut_std", yerr_key="auc_std", x_formatter="k", ylim=primary_ylim, model_legend_loc="lower right")
+    plot_pareto(primary, "latency_ns_mean", plots_dir / PARETO_FILES[1], "q/g vs W/Z/top: AUC vs latency", "Latency [ns]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="latency_ns_std", yerr_key="auc_std", xlim=(0, 120), ylim=primary_ylim, model_legend_loc="upper right")
+    plot_pareto(secondary, "lut_mean", plots_dir / PARETO_FILES[2], "q/g vs top: AUC vs LUT", r"LUT usage [$10^3$]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="lut_std", yerr_key="auc_std", x_formatter="k", ylim=secondary_ylim, model_legend_loc="lower right")
+    plot_pareto(secondary, "latency_ns_mean", plots_dir / PARETO_FILES[3], "q/g vs top: AUC vs latency", "Latency [ns]", score_key="auc_mean", ylabel="ROC AUC", xerr_key="latency_ns_std", yerr_key="auc_std", xlim=(0, 120), ylim=secondary_ylim, model_legend_loc="lower left")
+    plot_pareto(multiclass, "lut_mean", plots_dir / PARETO_FILES[4], "Multiclass: macro AUC vs LUT", r"LUT usage [$10^3$]", score_key="macro_auc_mean", ylabel="Macro ROC AUC", yerr_key="macro_auc_std", x_formatter="k", ylim=multiclass_ylim, model_legend_loc="lower right")
+    plot_pareto(multiclass, "latency_ns_mean", plots_dir / PARETO_FILES[5], "Multiclass: macro AUC vs latency", "Latency [ns]", score_key="macro_auc_mean", ylabel="Macro ROC AUC", xerr_key="latency_ns_std", yerr_key="macro_auc_std", xlim=(0, 120), ylim=multiclass_ylim, model_legend_loc="upper right")
 
     training_files = []
     for curve in records["training_curves"]:
@@ -422,32 +470,55 @@ def generate(records: dict, output_root: Path) -> dict:
     }
 
 
-def compare_generated(generated_root: Path) -> None:
-    expected = [*(Path("results") / name for name in TABLE_FILES), *(Path("plots") / name for name in PARETO_FILES)]
-    expected.extend(Path("plots") / path.name for path in sorted((generated_root / "plots").glob("*_training.png")))
-    mismatches = [str(path) for path in expected if not (ROOT / path).exists() or (ROOT / path).read_bytes() != (generated_root / path).read_bytes()]
+def compare_generated(generated_root: Path, profile: str) -> None:
+    expected = [
+        *(Path("results") / profile / name for name in TABLE_FILES),
+        *(Path("plots") / profile / name for name in PARETO_FILES),
+    ]
+    expected.extend(
+        Path("plots") / profile / path.name
+        for path in sorted((generated_root / "plots" / profile).glob("*_training.png"))
+    )
+    expected_set = set(expected)
+    actual_set = {
+        path.relative_to(ROOT)
+        for directory, pattern in (
+            (ROOT / "results" / profile, "*.csv"),
+            (ROOT / "plots" / profile, "*.png"),
+        )
+        for path in directory.glob(pattern)
+    }
+    mismatches = [
+        str(path)
+        for path in expected
+        if not (ROOT / path).exists()
+        or (ROOT / path).read_bytes() != (generated_root / path).read_bytes()
+    ]
+    mismatches.extend(f"unexpected: {path}" for path in sorted(actual_set - expected_set))
     if mismatches:
         raise RuntimeError("Committed artifacts differ from generated output:\n" + "\n".join(mismatches))
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument("--profile", choices=("20-epochs", "200-epochs"), default="20-epochs")
+    parser.add_argument("--source", type=Path)
     parser.add_argument("--output-root", type=Path, default=ROOT)
     parser.add_argument("--check", action="store_true", help="Verify committed outputs without modifying them.")
     args = parser.parse_args()
 
-    records = json.loads(args.source.read_text(encoding="utf-8"))
+    source = args.source or ROOT / "data" / args.profile / "benchmark_records.json"
+    records = json.loads(source.read_text(encoding="utf-8"))
     protocol = json.loads(args.config.read_text(encoding="utf-8"))
-    validate_source(records, protocol)
+    validate_source(records, protocol, args.profile)
     if args.check:
         with tempfile.TemporaryDirectory(prefix="fastml-benchmark-") as directory:
             generated_root = Path(directory)
-            summary = generate(records, generated_root)
-            compare_generated(generated_root)
+            summary = generate(records, generated_root, args.profile)
+            compare_generated(generated_root, args.profile)
     else:
-        summary = generate(records, args.output_root)
+        summary = generate(records, args.output_root, args.profile)
     print(json.dumps({"status": "ok", **summary}, indent=2))
     return 0
 

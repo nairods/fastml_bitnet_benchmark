@@ -16,8 +16,7 @@ def _write_result(output_dir: Path, result: dict):
     )
 
 
-def _load_run_config(root: Path, run_name: str) -> dict:
-    path = root / "logs" / "run_configs" / f"{run_name}.json"
+def _load_run_config(path: Path) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Missing run config: {path}")
     return json.loads(path.read_text(encoding="utf-8"))
@@ -53,24 +52,9 @@ def _qkeras_quantizers(config: dict, run_name: str):
 
 
 def _load_qkeras_weights(model, path: Path):
-    from qkeras import QDense
+    from qkeras_benchmark import load_qkeras_weights
 
-    dense_layers = [layer for layer in model.layers if isinstance(layer, QDense)]
-    with h5py.File(path, "r") as handle:
-        dependencies = handle["_layer_checkpoint_dependencies"]
-        groups = [name for name in dependencies if name.startswith("q_dense")]
-        groups.sort(
-            key=lambda name: int(name.rsplit("_", 1)[-1])
-            if name.rsplit("_", 1)[-1].isdigit()
-            else 0
-        )
-        if len(groups) != len(dense_layers):
-            raise ValueError(
-                f"Expected {len(dense_layers)} QDense groups, found {len(groups)}"
-            )
-        for layer, group_name in zip(dense_layers, groups):
-            values = dependencies[group_name]["vars"]
-            layer.set_weights([values["0"][()], values["1"][()]])
+    load_qkeras_weights(model, path)
 
 
 def build_qkeras(run_name: str, weights: Path, config: dict):
@@ -178,6 +162,13 @@ def convert_model(model, output_dir: Path):
     config = hls4ml.utils.config_from_keras_model(
         model, granularity="name", backend="Vivado"
     )
+    config["Model"]["Strategy"] = "Latency"
+    config["Model"]["ReuseFactor"] = 1
+    for layer in config.get("LayerName", {}).values():
+        if "ReuseFactor" in layer:
+            layer["ReuseFactor"] = 1
+        if "Strategy" in layer:
+            layer["Strategy"] = "Latency"
     hls_model = hls4ml.converters.convert_from_keras_model(
         model,
         hls_config=config,
@@ -196,20 +187,21 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--backend", choices=("qkeras", "hgq"), required=True)
     parser.add_argument("--run-name", required=True)
+    parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--weights", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=4096)
     args = parser.parse_args()
 
-    config = _load_run_config(args.root, args.run_name)
+    config = _load_run_config(args.config)
     arrays = load_dataset(config)
     inputs = arrays["x_test"]
     labels = arrays["y_test"]
+    profile = config.get("benchmark_profile")
+    data_dir = args.root / "data" / profile if profile else args.root / "data"
     reference = np.load(
-        args.root
-        / "data/synthesis/reference_predictions"
-        / f"{args.run_name}.npy",
+        data_dir / "synthesis" / "reference_predictions" / f"{args.run_name}.npy",
         mmap_mode="r",
     )
     limit = min(args.samples, len(inputs))
